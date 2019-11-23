@@ -11,13 +11,20 @@
   text-align: center;
   overflow-wrap: break-word;
 }
-.headercell{
+.headercell , .switch{
   background-color: rgb(2, 107, 110);
   color: aliceblue;
   font-size: 100%;
   padding-top: 0.5%;
   
 }
+
+.switch:hover{
+  background-color:rgb(8, 92, 94);
+
+  
+}
+
 .react-grid-item.cssTransforms {
   transition-property: transform;
 }
@@ -74,3 +81,13 @@
 .sml:hover { 
   background-color:cadetblue;
 }
+.remove  {
+  position: absolute;
+  right  :2px;
+  top: -4px !important;
+  cursor: pointer
+};
+.remove :hover {
+  background-color:brown !important;
+ 
+};
