@@ -6,7 +6,7 @@ import "./App.css";
 import _ from "lodash";
 import GridLayout from "react-grid-layout";
 
-import { Row, Col, Grid } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
 
 
 var layout = [];
@@ -54,13 +54,14 @@ for (let i = 0; i < row; i++) {
   }
 }
 class App extends React.Component {
+  _isMounted = false;
   constructor() {
     super();
 
     this.toggle_details = this.toggle_details.bind(this);
     this.toggle_unsceduled_details = this.toggle_unsceduled_details.bind(this);
     this.close_details = this.close_details.bind(this);
-    this.componentWillMount = this.componentWillMount.bind(this);
+    //this.componentWillMount = this.componentWillMount.bind(this);
     this.get_sceduled_cource_html = this.get_sceduled_cource_html.bind(this);
 
     this.state = {
@@ -69,7 +70,8 @@ class App extends React.Component {
       day: 0, //index of selected day
       details_is_open: false,
       selectedCourse: null,
-      selectedSemester: 1
+      selectedSemester: 1,
+      isLoading: true
 
       // {Event_teachers:[{Department_Teacher:[{Teacher:{firstName:""}}]}], Opened_course: { Department_course: { Course: {} } } }
     };
@@ -77,10 +79,14 @@ class App extends React.Component {
 
   dayscheduledCourses = [];
   semesterCourses = [];
-  componentWillMount() {
+  //componentWillMount() {
+  componentDidMount() {
+    this._isMounted = true;
     this.getAllCourses();
   }
-
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
   /*----------------------------------Drag and drop functions-------------------------------------------------------*/
   /*
   layout: Layout, oldItem: LayoutItem, newItem: LayoutItem,
@@ -95,51 +101,56 @@ class App extends React.Component {
     if (
       placeholder.x != ColumNo && //draged over different semester column
       !(newItem.x == ColumNo + 1 && newItem.w === 1) && // small and not  over second colum of semester
-        placeholder.x > menuColums - 3
+      placeholder.x > menuColums - 3
     ) {
       //over menu colums
       placeholder.h = 0;
     }
   };
   onDragStop = (layout, oldItem, newItem, placeholder, e, element) => {
-    let course=  this.getCourse(oldItem.i).course;
-    let courseType=  this.getCourse(oldItem.i).type;
+    let course = this.getCourse(oldItem.i).course;
+    let courseType = this.getCourse(oldItem.i).type;
+    let courseColumNo = this.getCourseColumNo(oldItem.i);
+    // controles for force course to be located over same samester 
+    if (
+      newItem.x != courseColumNo && // dragged over another semester colum
+      !(newItem.x == courseColumNo + 1 && newItem.w === 1) &&// item is not small and dragged over one of semester colums
+      newItem.x > menuColums - 3 //not  dragged over menu do nothing
+    ) {
+      // if course is located in another semester chift it
+      newItem.x = oldItem.x;
+      if (courseType === "unscheduled")  newItem.y = oldItem.y;
+    }
 
-  
-    if(courseType==="scheduled"){
-       // draged over scedule chanege values
-       if( newItem.x > menuColums ){
+
+    if (courseType === "scheduled") {
+      // draged over scedule chanege values
+      if (newItem.x > menuColums) {
         course.startingHour = hours[newItem.y - 1].substring(0, 2);
         course.weekDay = days[this.state.day];
-       }
-      
-       else{// dragged over menu
-        course.startingHour ="";
+      } else {
+        // dragged over menu
+        course.startingHour = "";
         course.weekDay = "";
-        this.delete_Scheduled_Course(course.id)
-        this.add_Unsceheduled_Course(course)
+        this.delete_Scheduled_Course(course.id);
+        this.add_Unsceheduled_Course(course);
         this.setState({
           selectedSemester: this.getSemesterNo(course.id)
-        })
-       
-       }
-       
-       
-    }  
-    else if(courseType==="unscheduled"){
-      if( newItem.x > menuColums ){// dragged over scedule
-        console.log("girdi")
+        });
+      }
+    } else if (courseType === "unscheduled") {
+      // dragged over scedule
+      if (newItem.x > menuColums) {
+        console.log("girdi");
         course.startingHour = hours[newItem.y - 1].substring(0, 2);
         course.weekDay = days[this.state.day];
-        this.delete_Unsceheduled_Course(course.id)
-        this.add_Scheduled_Course(course)
-       }
-      
-       else{// dragged over menu
-        
-       }
+        this.delete_Unsceheduled_Course(course.id);
+        this.add_Scheduled_Course(course);
+      } else {
+        // dragged over menu
+      }
     }
-  }
+  };
   /*
   onDragStop = (layout, oldItem, newItem, placeholder, e, element) => {
     
@@ -181,75 +192,80 @@ class App extends React.Component {
   onDrop = elemParam => {
     console.log(elemParam);
   };
-   /*-------------------------------------other cell functions----------------------------------------------*/
-  onResize=()=>{
-    console.log("worksed")
-  }
+  /*-------------------------------------other cell functions----------------------------------------------*/
+  onResize = () => {
+    console.log("worksed");
+  };
   onRemoveItem(id) {
-    let course=  this.getCourse(id).course;
-    course.startingHour ="";
+    let course = this.getCourse(id).course;
+    course.startingHour = "";
     course.weekDay = "";
-    this.delete_Scheduled_Course(course.id)
-    this.add_Unsceheduled_Course(course)
-    this.setState({
-      selectedSemester: this.getSemesterNo(course.id)
-    })
-    console.log("state is ",this.state)
-  
-   
+    this.delete_Scheduled_Course(course.id);
+    this.add_Unsceheduled_Course(course);
+    let semesterNo = this.getSemesterNo(course.id);
+    // if semester number does not changed but there is  courses added to menu  make semester change with 0  for forcing rerendering
+    this.setState(prev => {
+      return prev.selectedSemester === semesterNo
+        ? {
+            selectedSemester: 0
+          }
+        : {};
+    });
+    setTimeout(() => {
+      this.setState(prev => {
+        return {
+          selectedSemester: semesterNo
+        };
+      });
+    }, 10);
   }
   /*-------------------------------------Course functions----------------------------------------------*/
-  getCourse(id){
+  getCourse(id) {
     let unsceduledCourse = this.state.unscheduledCourses.filter(
       c => c.id == id
     )[0];
-    return(
-      unsceduledCourse?
-      {course: unsceduledCourse,type:"unscheduled"}:
-      {course: this.state.scheduledCourses.filter(
-        c => c.id == id
-      )[0],type:"scheduled"}
-    )
-   
-
+    return unsceduledCourse
+      ? { course: unsceduledCourse, type: "unscheduled" }
+      : {
+          course: this.state.scheduledCourses.filter(c => c.id == id)[0],
+          type: "scheduled"
+        };
   }
-  delete_Unsceheduled_Course(id){
+  delete_Unsceheduled_Course(id) {
     this.setState(prevState => {
       return {
         unscheduledCourses: prevState.unscheduledCourses.filter(
           course => course.id != id
-        ),
+        )
       };
-  })
-}
-  delete_Scheduled_Course(id){
+    });
+  }
+  delete_Scheduled_Course(id) {
     this.setState(prevState => {
       return {
         scheduledCourses: prevState.scheduledCourses.filter(
           course => course.id != id
-        ),
+        )
       };
-  })}
+    });
+  }
 
-  add_Scheduled_Course(course){
-
+  add_Scheduled_Course(course) {
     this.setState(prevState => {
-      prevState.scheduledCourses.push(course)
+      prevState.scheduledCourses.push(course);
       return {
         scheduledCourses: prevState.scheduledCourses
       };
-  })}
-  add_Unsceheduled_Course(course){
-  
+    });
+  }
+  add_Unsceheduled_Course(course) {
     this.setState(prevState => {
-      prevState.unscheduledCourses.push(
-        course
-      )
+      prevState.unscheduledCourses.push(course);
       return {
-        
-        unscheduledCourses:prevState.unscheduledCourses ,
+        unscheduledCourses: prevState.unscheduledCourses
       };
-  })}
+    });
+  }
 
   getAllCourses = () => {
     let scheduled = [];
@@ -257,6 +273,9 @@ class App extends React.Component {
     fetch("http://localhost:3004/openedCourses")
       .then(responce => responce.json())
       .then(data => {
+        if (this._isMounted) {
+          this.setState({ isLoading: false });
+        }
         data.map(d => {
           !d.weekDay.length
             ? // if event is unsceduled
@@ -279,11 +298,11 @@ class App extends React.Component {
 
   //according to semester number
   getCourseColumNo(id) {
-   
     return this.getSemesterNo(id) * 2 + menuColums;
   }
   getSemesterNo(id) {
-    return this.getCourse(id).course.Opened_course.Department_course.Course.semesterNo
+    return this.getCourse(id).course.Opened_course.Department_course.Course
+      .semesterNo;
     /*
     let unsceduledCourse = this.state.unscheduledCourses.filter(
       c => c.id == id
@@ -296,7 +315,6 @@ class App extends React.Component {
     return this.dayscheduledCourses.filter(c => c.id == id)[0].Opened_course
       .Department_course.Course.semesterNo;*/
   }
- 
 
   /*--------------------------------Details functions (Modal)------------------------------------*/
   toggle_details(course_id) {
@@ -434,7 +452,7 @@ class App extends React.Component {
   });
 
   render() {
-    console.log(this.state)
+    console.log(this.state);
     // geting all cells in jsx format
     let cellsComponents;
     let unscheduledCellsComponents;
@@ -478,8 +496,14 @@ class App extends React.Component {
 
     return (
       <>
-        {this.state.scheduledCourses.length == 0 ? (
-          <div>Loading</div>
+        {(this.state.scheduledCourses.length == 0 &&
+          this.state.unscheduledCourses.length == 0) ||
+        this.state.isLoading ? (
+          <div>
+            <div>Loading</div>
+
+            {}
+          </div>
         ) : (
           <Row>
             <Col md={10}>
@@ -499,7 +523,7 @@ class App extends React.Component {
                   onDrag: this.onDrag,
                   onDrop: this.onDrop,
                   onDragStop: this.onDragStop,
-                  onResize:this.onResize
+                  onResize: this.onResize
                 }}
               >
                 {this.create_static_header_cell_html(
