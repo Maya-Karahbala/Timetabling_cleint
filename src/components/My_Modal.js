@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Modal, Button, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-
+import CourseDetails from"./CourseDetails";
 export default class My_Modal extends Component {
   render() {
     
@@ -8,37 +8,11 @@ export default class My_Modal extends Component {
       <Modal isOpen={this.props.details_is_open}>
         <ModalHeader>
           {" "}
-          Ders Kodu :{" "}
-          {
-            this.props.selectedCourse.Opened_course.Department_course.Course
-              .code
-          }{" "}
+          Ders Bilgileri
+          {" "}
         </ModalHeader>
         <ModalBody>
-          <pre>
-            Ders Adı :
-            {
-              this.props.selectedCourse.Opened_course.Department_course.Course
-                .name
-            }
-          </pre>
-          <pre>
-            Öğretim Elemanları :
-            {this.props.selectedCourse.Event_teachers.map(
-              t =>
-                t.Department_Teacher.Teacher.firstName +
-                " " +
-                t.Department_Teacher.Teacher.lastName
-            ) + " "}{" "}
-          </pre>
-          <pre>
-            Derslik :
-            {this.props.selectedCourse.Event_classrooms.map(
-              e => e.Classroom.code + " "
-            )}
-          </pre>
-          <pre>Ders :{this.props.selectedCourse.eventType}</pre>
-          <pre>Başlangıç saat :{this.props.selectedCourse.startingHour} </pre>
+          <CourseDetails  selectedCourse={this.props.selectedCourse}/>
           {this.props.selectedCourse.conflicts.length !== 0 ? (
             <pre>
             <div >Bölüm çakışmaları :</div>
@@ -59,7 +33,7 @@ export default class My_Modal extends Component {
             ""
           )}
 
-           {this.props.selectedCourse.universityConflicts.length !== 0 ? (
+           {/*this.props.selectedCourse.universityConflicts.length !== 0 ? (
             <pre>
             <div >Üniversite çakışmaları :</div>
             <div style={{color: "red"}}>
@@ -77,7 +51,7 @@ export default class My_Modal extends Component {
             </pre>
           ) : (
             ""
-          )}
+          )*/}
         </ModalBody>
         <ModalFooter>
           <Button onClick={this.props.close_details}>Kapat</Button>

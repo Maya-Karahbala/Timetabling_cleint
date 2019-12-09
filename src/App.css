@@ -60,14 +60,8 @@
 
 .react-grid-item.react-grid-placeholder {
   background: lime;
-  opacity: 0.2;
-  transition-duration: 100ms;
-  z-index: 2;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
-  user-select: none;
+  opacity: 0.4;
+ 
 }
 
 .react-grid-item > .react-resizable-handle {
@@ -102,7 +96,7 @@
   cursor: pointer
 }
 .GridRow {
-margin-left: 0.5% !important;
+margin-right: 0.5% !important;
 margin-bottom: 1%;
 
 
@@ -110,18 +104,21 @@ margin-bottom: 1%;
 
 .grid{
   background-color: azure;
-  height: 530px;
+  height: 540px;
+  width: 1090px;
+  margin-left: 2%;
+
 }
-.buttonsdiv{
-  position: absolute;
-  right:   -7%;
-  margin-top:0%;
-  margin-left: 10% !important;
-  width: 50%
+.kontrol{
+ 
+  margin-block-end: 20% !important;
+  margin-left: 40% !important;
+
 }
 .save {
   background-color: 	rgb(34,139,34)  !important;
- width: 25%;
+ width: 80%;
+ margin-left: 10%
 }
 .save:hover  {
   background-color: 	rgb(13, 88, 13)  !important;
@@ -137,5 +134,54 @@ margin-bottom: 1%;
 
 }
 .conflictTree{
-  margin-left: -12%;
+ 
+  margin-top: 8%;
 }
+.department{
+  font-size: 110% ;
+  margin-top: 5%;
+  text-align: center;
+ 
+  
+}
+.p-tree {
+  width: 16.9em !important;
+}
+
+
+
+.logindepartment{
+  color: black;
+  background-color: white;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #ced4da;
+  border-radius: .25rem;
+}
+.logindepartment:hover{
+  color: black;
+  background-color: white;
+  width: 100%;
+  text-align: left;
+}
+.show>.btn-secondary.dropdown-toggle {
+  color: black;
+  background-color: white;
+}
+
+.sidenav---sidenav---_2tBP {
+
+  background:rgb(1, 37, 37) !important;
+
+}
+/*
+.sidenav---sidenav-toggle---1KRjR .sidenav---icon-bar---u1f02 {
+ 
+  background-color: rgb(0, 1, 2) !important;
+ .sidenav---sidenav-nav---3tvij > .sidenav---sidenav-navitem---uwIJ- > .sidenav---navitem---9uL5T  {
+   color: rgb(240, 243, 245) !important;
+
+}
+}*/
+
+
