@@ -25,6 +25,12 @@ const teacherReducer = (state = initialState, action) => {
         loading: false,
         error: action.payload
       };
+      case Types.UPDATE_CHANGED_COURSES:
+      return {
+        ...state,
+      [action.payload.arrayName]:    action.payload.data,
+      };
+      
 
     default:
       return state;

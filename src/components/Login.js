@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 
 // redux
-import { connect } from "react-redux";
-import { fetchDepartments, updateSelcectedDepartment,fetchData } from "../redux";
+import { connect ,useSelector} from "react-redux";
+import { fetchDepartments, updateSelcectedDepartment,fetchData,updateSelectedSemester } from "../redux";
+
 //
 
 import {
@@ -12,22 +13,29 @@ import {
   DropdownItem
 } from "reactstrap";
 import "../login.css";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route, Link,Redirect } from "react-router-dom";
 
 // equal to component did mount in class component work only one if [] added to last part
 function Login({
+  // redux inf and methods
   departmentData,
+  semes,
   fetchDepartments,
   updateSelcectedDepartment,
+  updateSelectedSemester,
   fetchData
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedDep, setSelectedDep] = useState({});
   const [mail, setMail] = useState("ahmet.ak@gmail.com");
   const [password, setPassword] = useState("ahmet");
+
+ 
+
   var users = [];
 
   useEffect(() => {
+  
     fetchDepartments();
   }, []);
 
@@ -77,11 +85,28 @@ function Login({
           data.map(u => users.push(u));
           let validation=isValid()
           if (validation.result) {
-            updateSelcectedDepartment({department:selectedDep, user:validation.user});
+            updateSelcectedDepartment({department:selectedDep, user:validation.user})
+            updateSelectedSemester(1)
+            console.log("----------------+++++++++++-------------",semes)
+            fetchData({deparmentId:selectedDep.id ,semesterNo:1 ,  arrayName:"openedCoursesEvents"})
+            fetchData({deparmentId:selectedDep.id ,semesterNo:1 ,  arrayName:"ChangedOpenedCoursesEvents" ,url:"openedCoursesEvents"})
+            
             // stored in redux state
             fetchData({deparmentId:selectedDep.id ,  arrayName:"teachers"})
+             
+              
             // no need for sending depid all classroom will be fetched but for using globa fetch data we send it 
-            fetchData({deparmentId:selectedDep.id ,  arrayName:"classrooms"})
+            fetchData({deparmentId:selectedDep.id  ,  arrayName:"classrooms"})
+            
+            
+           
+            // open schedule
+            var linkToClick = document.getElementById('something');
+            
+             
+              linkToClick.click();
+            
+          
           }
         })
         .catch(err => console.log(err));
@@ -101,13 +126,14 @@ function Login({
   };
 
   return (departmentData.loading || departmentData.departments.size < 1 )? (
-    <h2>Loading</h2>
+    <h1><i className="fa fa-refresh fa-spin fa-3x fa-fw"></i></h1>
   ) : departmentData.error ? (
     <h2>{departmentData.error}</h2>
   ) : (
-    <div>
-      <h3>Giriş Yap</h3>
-
+  
+      <div>
+        <Link id="something" to={"/SideNavbar"}>  </Link>
+       <h3>Giriş Yap</h3>
       <div className="form-group">
         <label>E-Posta Adresi</label>
         <input
@@ -149,7 +175,8 @@ function Login({
           </label>
         </div>
       </div>
-
+      
+       
       <button
         type="submit"
         className="btn btn-primary btn-block"
@@ -157,17 +184,20 @@ function Login({
       >
         Giriş Yap
       </button>
-
       <p className="forgot-password text-right">
         <a href="#">Şifremi unuttum?</a>
       </p>
+   
     </div>
   );
 }
 
 const mapStateToProps = state => {
+  
   return {
-    departmentData: state.department
+    departmentData: state.department,
+    semes:state.department.selectedSemester
+ 
   };
 };
 
@@ -175,8 +205,9 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchDepartments: () => dispatch(fetchDepartments()),
     fetchData : data => dispatch(fetchData(data)),
-    updateSelcectedDepartment: dep => dispatch(updateSelcectedDepartment(dep))
-
+    updateSelcectedDepartment: dep => dispatch(updateSelcectedDepartment(dep)),
+    updateSelectedSemester: (semesterNo) => dispatch(updateSelectedSemester(semesterNo))
+    
   };
 };
 

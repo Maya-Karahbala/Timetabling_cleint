@@ -29,7 +29,7 @@ getTeacherColor=()=>{
             }
           </pre>
           <pre>
-            Öğretim Elemanları :
+            Öğretim Üyeleri {"   :"}
             <div style={this.teacherColor}>
             {this.props.selectedCourse.Event_teachers.map(
               t =>

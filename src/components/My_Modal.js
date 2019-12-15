@@ -15,7 +15,7 @@ export default class My_Modal extends Component {
           <CourseDetails  selectedCourse={this.props.selectedCourse}/>
           {this.props.selectedCourse.conflicts.length !== 0 ? (
             <pre>
-            <div >Bölüm çakışmaları :</div>
+            <div >Çakışmalar:</div>
             <div style={{color: "red"}}>
               
               {this.props.selectedCourse.conflicts.map(conflict => (

@@ -4,77 +4,93 @@ import SideNav, {
   Nav,
   NavItem,
   NavIcon,
-  NavText,
-  
+  NavText
 } from "@trendmicro/react-sidenav";
-import Login from "./Login";
+import Semesters from "./Semesters";
 import Schedule from "./Schedule";
-// Be sure to include styles at some point, probably during your bootstraping
+import ConflictsPage from "./ConflictsPage";
+
 import "@trendmicro/react-sidenav/dist/react-sidenav.css";
 
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+// for icon
 
 export default class SideNavbar extends Component {
+  
   render() {
+
     return (
       <div>
+        
         <Router>
           <Route
             render={({ location, history }) => (
               <React.Fragment>
-               
-              
-                <SideNav 
-               
+                <SideNav
                   onSelect={selected => {
+                  
                     const to = "/" + selected;
                     if (location.pathname !== to) {
                       history.push(to);
                     }
                   }}
+                 
                 >
-                  <SideNav.Toggle />
-                  <SideNav.Nav defaultSelected="Login">
-                   
-                    <NavItem eventKey="Schedule">
+
+                  <SideNav.Toggle/>
+                  <SideNav.Nav defaultSelected="/Schedule">
+                    <NavItem eventKey="Schedule" >
                       <NavIcon>
                         <i
-                          className="fa fa-fw fa-device"
+                         className="fa fa-fw fa-home"
                           style={{ fontSize: "1.75em" }}
                         />
                       </NavIcon>
-                      <NavText  >Schedule</NavText>
+                      <NavText>Ders Programı</NavText>
                     </NavItem>
-                     <NavItem eventKey="Login">
+
+                    <NavItem eventKey="Semesters">
                       <NavIcon>
                         <i
-                          className="fa fa-fw fa-home"
+                         className="fa fa-calendar" 
+                          
                           style={{ fontSize: "1.75em" }}
                         />
                       </NavIcon>
-                      <NavText>Giriş yap</NavText>
+                      <NavText>Dönemler</NavText>
+                    </NavItem>
+                    <NavItem eventKey="ConflictsPage">
+                      <NavIcon>
+                        <i
+                          className="fa fa-exclamation-triangle"
+                          style={{ fontSize: "1.75em" }}
+                        />
+                      </NavIcon>
+                      <NavText>Çakışmalar</NavText>
                     </NavItem>
                   </SideNav.Nav>
                 </SideNav>
                 <main>
-                  <Route exact path="/Login">
-                    <div className="auth-wrapper">
-                      <div className="auth-inner">
-                        <Login />
-                      </div>
-                    </div>
-                  </Route>
                   <Route path="/Schedule">
                     <Schedule />
                   </Route>
+                  <Route path="/Semesters">
+                    <Semesters />
+                  </Route>
+                  <Route path="/ConflictsPage">
+                    <ConflictsPage />
+                  </Route>
+                  
                 </main>
               </React.Fragment>
             )}
           />
+           
         </Router>
+      
+        
+        
       </div>
     );
   }
 }
-
-

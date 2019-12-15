@@ -2,16 +2,20 @@ import React from "react";
 
 import Cell from "./Cell";
 import My_Modal from "./My_Modal";
-import ConflictTree from"./ConflictTree";
+import ConflictTree from "./ConflictsPage";
 
-
+import { useSelector } from "react-redux";
 import _ from "lodash";
 import GridLayout from "react-grid-layout";
 
 import { Row, Col } from "react-bootstrap";
 //alerts
-import { Alert } from 'reactstrap';
+import { Alert } from "reactstrap";
 //
+import { connect } from "react-redux";
+import { fetchData ,updateChangedCourses} from "../redux";
+
+import{isTimeConsflicted,isClassroomConsflicted,isTeacherConsflicted} from "../jsFiles/Conflicts"
 var layout = [];
 const hours = [
   "",
@@ -36,28 +40,28 @@ const days = [
   "Pazar"
 ];
 
-
 var row = 11,
   colums = 9,
   menuColums = 4,
-  departmentId=1;
+  departmentId = 0,
+  semesterId = 0;
 for (let i = 0; i < row; i++) {
   for (let j = 0; j < colums; j++) {
     if (i === 0 || j === 0)
       // headers cordinates
       layout.push({
-        i: "0" + i.toString() + j.toString(),// i will used as a key must be unique
+        i: "0" + i.toString() + j.toString(), // i will used as a key must be unique
         // add menuColums for chifting grid
         x: j * 2 + menuColums, //each cell will fill 2 colum locate cell in the first one // will be used to saperate cell into 2 section in need
-        y: i + 1,// row number 
-        w: 2,//width
-        h: 1,//height
-        static: true  // x,y are constant cant move
+        y: i + 1, // row number
+        w: 2, //width
+        h: 1, //height
+        static: true // x,y are constant cant move
       });
   }
 }
 class Schedule extends React.Component {
-  constructor() {
+  constructor(departmentData, fetchData,reduxChangedCourses,updateChangedCourses,changedIdes) {
     super();
 
     this.toggle_details = this.toggle_details.bind(this);
@@ -67,11 +71,10 @@ class Schedule extends React.Component {
     this.get_sceduled_cource_html = this.get_sceduled_cource_html.bind(this);
     this.get_changed_Courses = this.get_changed_Courses.bind(this);
     this.toggle_alert = this.toggle_alert.bind(this);
-    this.isClassroomConsflicted = this.isClassroomConsflicted.bind(this);
-    this.isTeacherConsflicted = this.isTeacherConsflicted.bind(this);
+ 
     this.setDepartmentConflicts = this.setDepartmentConflicts.bind(this);
-    this.getUniversityCourses = this.getUniversityCourses.bind(this);
     
+
     this.state = {
       scheduledCourses: [],
       unscheduledCourses: [],
@@ -79,7 +82,7 @@ class Schedule extends React.Component {
       details_is_open: false,
       selectedCourse: null,
       selectedSemester: 1,
-      isLoading: true,
+
       alertVisble: false
 
       // {Event_teachers:[{Department_Teacher:[{Teacher:{firstName:""}}]}], Opened_course: { Department_course: { Course: {} } } }
@@ -88,8 +91,7 @@ class Schedule extends React.Component {
 
   dayscheduledCourses = [];
   semesterCourses = [];
-  universityCourses =[];
-  departments= new Map()
+
   //used for  detecting change store inital state of  courses  fetched from database
   courses = new Map();
 
@@ -100,13 +102,32 @@ class Schedule extends React.Component {
   //componentWillMount() {
   componentDidMount() {
     this._isMounted = true;
+    departmentId = this.props.departmentData.selectedDepartment.id;
+    semesterId = this.props.departmentData.selectedSemester;
+    console.log("----------reduxCourses-------------", this.props.reduxCourses);
+    console.log("----------reduxChangedCourses-------------", this.props.reduxChangedCourses);
+    
     this.getAllCourses();
-   
   }
   componentWillUnmount() {
     // setting cell width
 
     this._isMounted = false;
+  
+  }
+  componentWillUnmount() {
+    let allChangedCourse=this.state.scheduledCourses.concat(this.state.unscheduledCourses)
+    console.log(allChangedCourse)
+    this.props.updateChangedCourses({
+      //data:   JSON.parse(JSON.stringify(allChangedCourse))  ,
+      data:  allChangedCourse ,
+      arrayName: "ChangedOpenedCoursesEvents"
+    })
+    this.props.updateChangedCourses({
+      data:this.changed,
+      arrayName: "changedIdes"
+    })
+    console.log("çıktı");
   }
   /*----------------------------------Drag and drop functions-------------------------------------------------------*/
   /*
@@ -146,7 +167,7 @@ class Schedule extends React.Component {
       newItem.x = oldItem.x;
       newItem.y = oldItem.y;
     } else {
-      this.add_if_not_exisits(this.changed,oldItem.i);
+      this.add_if_not_exisits(this.changed, oldItem.i);
       console.log(this.changed);
 
       if (courseType === "scheduled") {
@@ -228,77 +249,45 @@ class Schedule extends React.Component {
   }
 
   /*-------------------------------------Course functions----------------------------------------------*/
+
   getAllCourses = () => {
     let scheduled = [];
     let unscheduled = [];
-    this.getDepartments()
-    fetch("http://localhost:3004/openedCourses/" + departmentId)
-      .then(responce => responce.json())
-      .then(data => {
-        
-        if (this._isMounted) {
-          this.setState({ isLoading: false });
-          // copying array  of nested object to new array and store it in map
-          JSON.parse(JSON.stringify(data)).map(course => {
-            this.courses.set(course.id, course);
-          });
-        }
-        data.map(d => {
-          // for controling cell width
-          d.width = this.getCellwidth(d);
-          d.conflicts = [];
-          d.universityConflicts = []
 
-          !d.weekDay.length
-            ? // if event is unsceduled
-              unscheduled.push(d)
-            : scheduled.push(d);
-        });
-        this.setState({
-          scheduledCourses: scheduled,
-          unscheduledCourses: unscheduled,
-          selectedCourse: data[0]
-        });
-        console.log("scheduled fetch", scheduled);
-        console.log("unsceduled fetch", unscheduled);
-        
-        this.setDepartmentConflicts();
-      })
+    // courses as it is saved in database
 
-      .catch(err => console.log(err));
-  };
-  getUniversityCourses() {
-    this.universityCourses=[]
-    fetch("http://localhost:3004/openedCourses")
-      .then(responce => responce.json())
-      .then(data => {
-        JSON.parse(JSON.stringify(data)).map(course => {
-          // add courses not belongs to same department
-          if(course.Opened_course.Department_course.departmentId!== departmentId)
-          this.universityCourses.push(course);
-        });
-        console.log("universityCourses",this.universityCourses)
-      }).then(()=>{
-        this.setUniverityConflicts();
-        this.setState({});
-      })
+    this.props.reduxCourses.map(course => {
+      this.courses.set(course.id, course);
+    });
+    // courses with unsaved changes
+    //let CoursesCopy = JSON.parse(JSON.stringify(this.props.reduxChangedCourses));
+    let CoursesCopy = this.props.reduxChangedCourses;
+    CoursesCopy.map(d => {
+      // for controling cell width
+      d.width = this.getCellwidth(d);
+      d.conflicts = [];
+      d.universityConflicts = [];
 
-      .catch(err => console.log(err));
-  }
-  getDepartments(){
-    fetch("http://localhost:3004/departments")
-    .then(responce => responce.json())
-    .then(data => {
-        JSON.parse(JSON.stringify(data)).map(dep => {
-          this.departments.set(dep.id, dep);
-        });
-        console.log( "department",this.departments)
-    }
+      !d.weekDay.length
+        ? // if event is unsceduled
+          unscheduled.push(d)
+        : scheduled.push(d);
+    });
+    this.setState({
+      scheduledCourses: scheduled,
+      unscheduledCourses: unscheduled,
+      selectedCourse: CoursesCopy[0] //random
+    },()=>{
+      this.setDepartmentConflicts();
+    });
+
+    console.log("scheduled fetch", scheduled);
+    console.log("unsceduled fetch", unscheduled);
+
     
-    )
+  };
 
-    .catch(err => console.log(err));
-  }
+
   getCourse(id) {
     let unsceduledCourse = this.state.unscheduledCourses.filter(
       c => c.id == id
@@ -359,103 +348,37 @@ class Schedule extends React.Component {
     return course.Opened_course.Department_course.Course.semesterNo;
   }
   /*-------------------------------------Course conflict functions ----------------------------------------------*/
-  isTimeConsflicted(course1, course2) {
-    if (Number(course1.startingHour) > Number(course2.startingHour)) {
-      let temp = course1;
-      course1 = course2;
-      course2 = temp;
-    }
-    let course1endingHour =
-      Number(course1.startingHour) + (Number(course1.duration) - 1);
-    let course1startingHour = Number(course1.startingHour);
-    let course2startingHour = Number(course2.startingHour);
-    if (
-      course2startingHour >= course1startingHour &&
-      course2startingHour <= course1endingHour
-    ) {
-      return true;
-    }
-    return false;
-  }
-  isClassroomConsflicted(course1, course2) {
-    for (const classroom1 of course1.Event_classrooms) {
-      for (const classroom2 of course2.Event_classrooms) {
-        if (classroom1.classroomId === classroom2.classroomId) {
-          return true;
-        }
-      }
-    }
 
-    return false;
-  }
-  isTeacherConsflicted(course1, course2) {
-    for (const teacher1 of course1.Event_teachers) {
-      for (const teacher2 of course2.Event_teachers) {
-     //   if (teacher1.dapartmentTeacherId === teacher2.dapartmentTeacherId) {
-      if (teacher1.Department_Teacher.Teacher.id  === teacher2.Department_Teacher.Teacher.id ) {
-         
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
 
   setDepartmentConflicts(courses = this.state.scheduledCourses) {
+    console.log("conflicte girdi")
     this.state.scheduledCourses.map(course1 => {
       course1.conflicts = [];
       courses.map(course2 => {
         if (
           course1.id !== course2.id &&
-          this.isTimeConsflicted(course1, course2) &&
+          isTimeConsflicted(course1, course2) &&
           course1.weekDay === course2.weekDay
         ) {
-          if (this.isClassroomConsflicted(course1, course2)) {
+          if (isClassroomConsflicted(course1, course2)) {
             course1.conflicts.push({
               type: "classroom",
-              conflictedCourse: course2,   
+              conflictedCourse: course2
             });
           }
-          if (this.isTeacherConsflicted(course1, course2)) {
+          if (isTeacherConsflicted(course1, course2)) {
             course1.conflicts.push({
               type: "teacher",
-              conflictedCourse: course2 
+              conflictedCourse: course2
             });
           }
         }
       });
     });
+    console.log("------------******-------********----*-*-",this.state.scheduledCourses)
     this.setState({});
   }
-  // conflicts between all department
-  setUniverityConflicts(){
-    this.state.scheduledCourses.map(course1 => {
-      course1.universityConflicts = [];
-      this.universityCourses.map(course2 => {
-        if (
-          this.isTimeConsflicted(course1, course2) &&
-          course1.weekDay === course2.weekDay
-        ) {
-          if (this.isClassroomConsflicted(course1, course2)) {
-            course1.universityConflicts.push({
-              type: "classroom",
-              conflictedCourse: course2,  
-               
-            });
-          }
-          if (this.isTeacherConsflicted(course1, course2)) {
-            course1.universityConflicts.push({
-              type: "teacher",
-              conflictedCourse: course2 
-            });
-          }
-        }
-      });
-    });
-    console.log("with uni conflicts --->",this.state.scheduledCourses)
-  }
- 
+
 
   /*--------------------------------Details functions (Modal)------------------------------------*/
   toggle_details(course_id) {
@@ -515,7 +438,7 @@ class Schedule extends React.Component {
           // droppingItem: { i: course.id, w: 6, h: 5 },
         }}
         className={
-          course.conflicts.length === 0 
+          course.conflicts.length === 0
             ? "react-grid-item sml blue"
             : "react-grid-item sml red"
         }
@@ -543,7 +466,7 @@ class Schedule extends React.Component {
           // if has  semester and time
           if (
             this.getSemesterNo(course) === this.getSemesterNo(c) &&
-            this.isTimeConsflicted(course, c) &&
+            isTimeConsflicted(course, c) &&
             c.weekDay === course.weekDay
           ) {
             if (
@@ -565,16 +488,22 @@ class Schedule extends React.Component {
     return this.getCellwidth(this.getCourse(courseid).course);
   }
   /*-------------------------------detect changes in database ------------------------------------*/
-  add_if_not_exisits(array,id) {
+  add_if_not_exisits(array, id) {
     if (array.indexOf(id) === -1) array.push(id);
   }
   get_changed_Courses() {
     let newCourse, oldCourse;
     let tempChangedCourses = [];
+    // if there is a changes saved in globa state add it
+    console.log(    "redyx change id ",this.props.changedIdes)
+    if(this.props.changedIdes!== undefined)
+    this.props.changedIdes.map(id=> this.add_if_not_exisits(this.changed,id))
+    console.log("changed  ", this.changed)
     this.changed.map(id => {
       let tempObject = {};
       newCourse = this.getCourse(id).course;
       oldCourse = this.courses.get(Number(id));
+      
       if (!_.isEqual(newCourse, oldCourse)) {
         if (newCourse.startingHour !== oldCourse.startingHour) {
           tempObject.startingHour = newCourse.startingHour;
@@ -582,10 +511,12 @@ class Schedule extends React.Component {
         if (newCourse.weekDay !== oldCourse.weekDay) {
           tempObject.weekDay = newCourse.weekDay;
         }
+        
+        if(!_.isEmpty(tempObject))
         tempChangedCourses.push({ id: id, changedData: tempObject });
       }
     });
-    console.log(tempChangedCourses);
+    console.log("temp changed course ",tempChangedCourses);
     if (tempChangedCourses.length !== 0)
       this.send_changedCourses_to_server(tempChangedCourses);
   }
@@ -597,12 +528,19 @@ class Schedule extends React.Component {
     }).then(response => {
       console.log(response);
       if (response.ok) {
-        this.changed = [];
-        this.componentDidMount();
-        this.setDepartmentConflicts();
+        this.props.updateChangedCourses({
+          data:[],
+          arrayName: "changedIdes"
+        })
+        this.props.fetchData({
+          deparmentId: departmentId,
+          semesterNo: semesterId,
+          arrayName: "openedCoursesEvents"
+        });
         this.toggle_alert();
         setTimeout(() => {
-          this.componentDidMount();
+          this.changed = [];
+        //  this.componentDidMount();
           this.setState({
             alertVisble: false
           });
@@ -682,6 +620,7 @@ class Schedule extends React.Component {
 
   render() {
     console.log("render edildi");
+
     console.log(this.state.scheduledCourses);
     // geting all cells in jsx format
     let cellsComponents;
@@ -725,15 +664,17 @@ class Schedule extends React.Component {
 
     return (
       <>
-        {(this.state.scheduledCourses.length == 0 &&
-          this.state.unscheduledCourses.length == 0) ||
-        this.state.isLoading ? (
+        {this.state.scheduledCourses.length == 0 &&
+        this.state.unscheduledCourses.length == 0 ? (
           <div>
             <div>Loading</div>
           </div>
         ) : (
           <div>
             <Row className="alarmRow">
+            <Col lg={1}></Col>
+
+              <Col lg={10}>
               <div className="alert">
                 <Alert
                   color="success"
@@ -744,12 +685,12 @@ class Schedule extends React.Component {
                   değişiklikler kaydedildi
                 </Alert>
               </div>
-            </Row>
-          
-            <Row className="GridRow">
-            <Col lg={1}>
               </Col>
-          
+            </Row>
+
+            <Row className="GridRow">
+              <Col lg={1}></Col>
+
               <Col lg={10}>
                 <GridLayout
                   className="layout grid"
@@ -837,7 +778,6 @@ class Schedule extends React.Component {
                   {cellsComponents}
                 </GridLayout>
               </Col>
-          
             </Row>
             <My_Modal
               selectedCourse={this.state.selectedCourse}
@@ -846,23 +786,16 @@ class Schedule extends React.Component {
             />
             <Row className="GridRow">
               <Col lg={8}></Col>
-              <Col lg={2}>  <button
-                    type="button"
-                    className="btn btn-secondary save kontrol"
-                    onClick={this.getUniversityCourses}
-                  >
-                    Kontrol et
-                  </button></Col>
            
-              <Col lg={2}>
-                  <button
-                    type="button"
-                    className="btn btn-secondary save"
-                    onClick={this.get_changed_Courses}
-                  >
-                    Kaydet
-                  </button>
-               
+
+              <Col lg={2} style={{marginLeft:"9%"}}>
+                <button
+                  type="button"
+                  className="btn btn-secondary save"
+                  onClick={this.get_changed_Courses}
+                >
+                  Kaydet
+                </button>
               </Col>
             </Row>
           </div>
@@ -871,9 +804,25 @@ class Schedule extends React.Component {
     );
   }
 }
+const mapStateToProps = state => {
+  return {
+    departmentData: state.department,
+    reduxCourses: state.data.openedCoursesEvents,
+    reduxChangedCourses:state.data.ChangedOpenedCoursesEvents,
+    changedIdes:state.data.changedIdes
+  };
+};
 
-export default Schedule;
+const mapDispatchToProps = dispatch => {
+  return {
+    
+    fetchData: data => dispatch(fetchData(data)),
+    updateChangedCourses: data => dispatch(updateChangedCourses(data))
+    
+  };
+};
 
+export default connect(mapStateToProps, mapDispatchToProps)(Schedule);
 
 /*
   <Col lg={2}>

@@ -1,4 +1,5 @@
 
+ 
   
 .react-grid-layout {
   position: relative;
@@ -172,6 +173,11 @@ margin-bottom: 1%;
 .sidenav---sidenav---_2tBP {
 
   background:rgb(1, 37, 37) !important;
+
+}
+.conflictPageRow{
+  
+    flex-wrap: nowrap;
 
 }
 /*

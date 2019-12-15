@@ -6,6 +6,7 @@ const initialState = {
   loading: false,
   departments: new Map(),
   selectedDepartment: {},
+  selectedSemester:0,
   user: {},
   error: ""
 };
@@ -18,8 +19,14 @@ const departmentReducer = (state = initialState, action) => {
           ...state,
           selectedDepartment: action.payload.department,
           user: action.payload.user,
+         
 
         };
+        case Types.UPDATE_SELECTED_SEMESTER:
+          return {
+            ...state,
+            selectedSemester:action.payload,
+          };
     case Types.FETCH_DEPARTMENT_REQUEST:
       return {
         ...state,

@@ -43,11 +43,23 @@ export const fetchDepartmentsFailure = error => {
 }
 
 // set delected department and loged in user info
-export const updateSelcectedDepartment =(payload) => {
-return {
-  type: Types.UPDATE_SELECTED_DEPARTMENT,
-  payload: payload
-}
-}
+
+export const updateSelcectedDepartment = (payload) => {
+  
+    return {
+      type: Types.UPDATE_SELECTED_DEPARTMENT,
+      payload: payload
+    }
+    
+  }
+  export const updateSelectedSemester = (payload) => {
+  
+    return {
+      type: Types.UPDATE_SELECTED_SEMESTER,
+      payload: payload
+    }
+    
+  }
+
 
 
