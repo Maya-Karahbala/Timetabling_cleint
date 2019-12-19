@@ -4,7 +4,7 @@ import "primereact/resources/themes/nova-light/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import { Row, Col } from "react-bootstrap";
-import { Card, Button, CardTitle, CardText } from 'reactstrap';
+import { Card, Button, CardTitle, CardText } from "reactstrap";
 
 import CourseDetails from "./CourseDetails";
 import { connect } from "react-redux";
@@ -14,7 +14,7 @@ import {
   isTeacherConsflicted
 } from "../jsFiles/Conflicts";
 class ConflictsPage extends Component {
-  constructor(departments, changedCourses, semesterId, departmentId,courses) {
+  constructor(departments, changedCourses, semesterId, departmentId, courses) {
     super();
     this.showDepartmentConflicts = this.showDepartmentConflicts.bind(this);
     this.showConflicts = this.showConflicts.bind(this);
@@ -37,11 +37,11 @@ class ConflictsPage extends Component {
   TeacherConflicts = [];
   data = [];
   allConflicts = new Map();
-  componentWillMount=()=> {
+  componentDidMount = () => {
     this.getUniversityCourses();
     this.setDepartmentConflicts();
-  }
-   getUniversityCourses=()=> {
+  };
+  getUniversityCourses = () => {
     let uniCourses = [];
     fetch("http://localhost:3004/openedCoursesEvents/" + this.props.semesterId)
       .then(responce => responce.json())
@@ -57,21 +57,23 @@ class ConflictsPage extends Component {
         this.setState({
           universityCourses: uniCourses
         });
-        console.log("universityCourses fetch edildi ", this.state.universityCourses);
+        console.log(
+          "universityCourses fetch edildi ",
+          this.state.universityCourses
+        );
       })
       .then(() => {
         this.setUniverityConflicts();
         this.setState({
-          isloading:false,
-         
+          isloading: false
         });
       })
 
       .catch(err => console.log(err));
-  }
+  };
 
   // conflicts between all department
-  setUniverityConflicts=()=> {
+  setUniverityConflicts = () => {
     this.props.changedCourses.map(course1 => {
       course1.universityConflicts = [];
       this.state.universityCourses.map(course2 => {
@@ -95,9 +97,9 @@ class ConflictsPage extends Component {
       });
     });
     console.log("with uni conflicts --->", this.props.changedCourses);
-  }
-  setDepartmentConflicts=() =>{
-    console.log("conflicte girdi")
+  };
+  setDepartmentConflicts = () => {
+    console.log("conflicte girdi");
     this.props.changedCourses.map(course1 => {
       course1.conflicts = [];
       this.props.changedCourses.map(course2 => {
@@ -121,10 +123,9 @@ class ConflictsPage extends Component {
         }
       });
     });
- 
-  }
+  };
 
-  showDepartmentConflicts=(array, type, order)=> {
+  showDepartmentConflicts = (array, type, order) => {
     let temp = [];
     let counter = 0;
     this.props.changedCourses.map(course => {
@@ -164,9 +165,9 @@ class ConflictsPage extends Component {
         });
       }
     });
-  }
-  showConflicts=(array, type, order) =>{
-    console.log("------------------", this.props.changedCourses)
+  };
+  showConflicts = (array, type, order) => {
+    console.log("------------------", this.props.changedCourses);
     let counter = 0;
     this.props.changedCourses.map(course => {
       if (course.universityConflicts.length !== 0) {
@@ -197,8 +198,8 @@ class ConflictsPage extends Component {
         });
       }
     });
-  }
-  add_if_not_exists=(item, array)=> {
+  };
+  add_if_not_exists = (item, array) => {
     let result = true;
     array.map(item2 => {
       if (
@@ -209,8 +210,8 @@ class ConflictsPage extends Component {
     });
     if (result) array.push(item);
     return result;
-  }
-  updateData=() =>{
+  };
+  updateData = () => {
     this.data = [
       {
         key: "0",
@@ -232,8 +233,8 @@ class ConflictsPage extends Component {
       },
       {
         key: "1",
-        label: "Üniversite Çakışmaları",
-        icon: "pi pi-fw pi-home",
+        label: "Bölümler Arası Çakışmalar",
+        icon: "pi pi-th-large",
         children: [
           {
             key: "1-0",
@@ -248,7 +249,7 @@ class ConflictsPage extends Component {
         ]
       }
     ];
-  }
+  };
   clear() {
     this.depClassroomConflicts = [];
     this.depTeacherConflicts = [];
@@ -279,93 +280,88 @@ class ConflictsPage extends Component {
   }
 
   render() {
-    if(!this.state.isloading){
-    this.clear();
-    this.showDepartmentConflicts(
-      this.depClassroomConflicts,
-      "classroom",
-      "0-0-"
-    );
-    this.showDepartmentConflicts(this.depTeacherConflicts, "teacher", "0-1-");
-    this.showConflicts(this.ClassroomConflicts, "classroom", "1-0-");
-    this.showConflicts(this.TeacherConflicts, "teacher", "1-1-");
-    this.updateData();
-    console.log("conflicts    ", this.allConflicts);}
+    if (!this.state.isloading) {
+      this.clear();
+      this.showDepartmentConflicts(
+        this.depClassroomConflicts,
+        "classroom",
+        "0-0-"
+      );
+      this.showDepartmentConflicts(this.depTeacherConflicts, "teacher", "0-1-");
+      this.showConflicts(this.ClassroomConflicts, "classroom", "1-0-");
+      this.showConflicts(this.TeacherConflicts, "teacher", "1-1-");
+      this.updateData();
+      console.log("conflicts    ", this.allConflicts);
+    }
     return (
-   
       <>
-         {this.state.isloading?
-      "":
-    
-        <Row style={{marginTop:"2%"}}>
-          
-          <Col lg={2} style={{marginLeft:"5%"}}>
-            <Tree
-              value={this.data}
-              expandedKeys={this.state.expandedKeys}
-              onToggle={e => this.onToggle(e)}
-              style={{ marginTop: ".5em" }}
-              selectionMode="single"
-              onSelectionChange={e => this.onSelectionChange(e)}
-            />
-          </Col>
-          
-          <Col lg={9} style={{marginTop:"6%",marginLeft:"2%"}}>
-            {this.state.course1 === null ? (
-              ""
-            ) : (
-              <Row>
-     <Col sm="6">
-              <Card body>
-                <CardTitle> 1. Ders Bilgileri</CardTitle>
-                <CardText> <CourseDetails
-                  selectedCourse={this.state.course1}
-                  conflictType={this.state.conflictType}
-                />
-                  <pre>
-                  Bölüm adı{"          :"} 
-                  {
-                    this.props.departments.get(
-                      this.state.course1.Opened_course.Department_course
-                        .departmentId
-                    ).name
-                  }{" "}
-                </pre>
-                </CardText>
-                
-              </Card>
+        {this.state.isloading ? (
+          ""
+        ) : (
+          <Row style={{ marginTop: "2%", width: "100%" }}>
+            <Col lg={3} style={{ marginLeft: "5%" }}>
+              <Tree
+                value={this.data}
+                expandedKeys={this.state.expandedKeys}
+                onToggle={e => this.onToggle(e)}
+                style={{ marginTop: ".5em" }}
+                selectionMode="single"
+                onSelectionChange={e => this.onSelectionChange(e)}
+              />
             </Col>
-            <Col sm="6">
-              <Card body>
-                <CardTitle>2. Ders Bilgileri</CardTitle>
-                <CardText> <CourseDetails
-                  selectedCourse={this.state.course2}
-                  conflictType={this.state.conflictType}
-                />
-                  <pre>
-                  Bölüm adı{"          :"} 
-                  {
-                    this.props.departments.get(
-                      this.state.course2.Opened_course.Department_course
-                        .departmentId
-                    ).name
-                  }{" "}
-                </pre>
-                </CardText>
-           
-              </Card>
+
+            <Col lg={6} style={{ marginTop: "0%", marginLeft: "5%" }}>
+              {this.state.course1 === null ? (
+                ""
+              ) : (
+                <div>
+                  <Row>
+                    <Card body>
+                      <CardTitle> 1. Ders Bilgileri</CardTitle>
+                      <CardText>
+                        {" "}
+                        <CourseDetails
+                          selectedCourse={this.state.course1}
+                          conflictType={this.state.conflictType}
+                        />
+                        <pre>
+                          Bölüm adı{"          :"}
+                          {
+                            this.props.departments.get(
+                              this.state.course1.Opened_course.Department_course
+                                .departmentId
+                            ).name
+                          }{" "}
+                        </pre>
+                      </CardText>
+                    </Card>
+                  </Row>
+                  <Row style={{ marginTop: "-7%"}}>
+                    <Card body>
+                      <CardTitle> 2. Ders Bilgileri</CardTitle>
+                      <CardText>
+                        {" "}
+                        <CourseDetails
+                          selectedCourse={this.state.course2}
+                          conflictType={this.state.conflictType}
+                        />
+                        <pre>
+                          Bölüm adı{"          :"}
+                          {
+                            this.props.departments.get(
+                              this.state.course2.Opened_course.Department_course
+                                .departmentId
+                            ).name
+                          }{" "}
+                        </pre>
+                      </CardText>
+                    </Card>
+                  </Row>
+                </div>
+              )}
             </Col>
-              </Row>
-         
-
-
-
-
-
-            )}
-          </Col>
-        </Row>
-         }
+          </Row>
+        )}
       </>
     );
   }
@@ -376,9 +372,11 @@ const mapStateToProps = state => {
     departmentId: state.department.selectedDepartment.id,
     departments: state.department.departments,
     // need to be filtered now we paa all events
-    changedCourses: state.data.ChangedOpenedCoursesEvents.filter(course=> course.weekDay!==""),
+    changedCourses: state.data.ChangedOpenedCoursesEvents.filter(
+      course => course.weekDay !== ""
+    ),
     // unchanged
-    courses:state.data.openedCoursesEvents
+    courses: state.data.openedCoursesEvents
   };
 };
 
@@ -387,39 +385,3 @@ const mapDispatchToProps = dispatch => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ConflictsPage);
-/*
-
-
-              <div>
-                <h7> 1. Ders Bilgileri</h7>
-                <CourseDetails
-                  selectedCourse={this.state.course1}
-                  conflictType={this.state.conflictType}
-                />
-                <pre>
-                  Bölüm adı :
-                  {
-                    this.props.departments.get(
-                      this.state.course1.Opened_course.Department_course
-                        .departmentId
-                    ).name
-                  }{" "}
-                </pre>
-                <hr style={{ marginBottom: "0" }}></hr>
-                <h6> 2. Ders Bilgileri</h6>
-                <CourseDetails
-                  selectedCourse={this.state.course2}
-                  conflictType={this.state.conflictType}
-                />
-                <pre>
-                  Bölüm adı :
-                  {
-                    this.props.departments.get(
-                      this.state.course2.Opened_course.Department_course
-                        .departmentId
-                    ).name
-                  }{" "}
-                </pre>
-              </div>
-
-*/

@@ -8,6 +8,7 @@ export default class Cell extends Component {
           
     // light red #ff8080    
     return (
+      this.props.course===undefined? "":(
       <div className={"sml "+this.props.color} onDoubleClick={this.toggle_details}>
           
         <div>{this.props.course.id+" "+this.props.course.Opened_course.Department_course.Course.code}</div>
@@ -18,9 +19,10 @@ export default class Cell extends Component {
         </div>
         <div>{this.props.course.Event_classrooms[0].Classroom.code}</div>
         
-     
-  
       </div>
+      ) 
+     
+    
     );
   }
 }

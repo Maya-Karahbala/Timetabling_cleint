@@ -6,9 +6,10 @@ import SideNav, {
   NavIcon,
   NavText
 } from "@trendmicro/react-sidenav";
-import Semesters from "./Semesters";
+import SemestersPage from "./SemestersPage";
 import Schedule from "./Schedule";
 import ConflictsPage from "./ConflictsPage";
+import CoursesPage from "./CoursesPage";
 
 import "@trendmicro/react-sidenav/dist/react-sidenav.css";
 
@@ -49,7 +50,7 @@ export default class SideNavbar extends Component {
                       <NavText>Ders Programı</NavText>
                     </NavItem>
 
-                    <NavItem eventKey="Semesters">
+                    <NavItem eventKey="SemestersPage">
                       <NavIcon>
                         <i
                          className="fa fa-calendar" 
@@ -58,6 +59,15 @@ export default class SideNavbar extends Component {
                         />
                       </NavIcon>
                       <NavText>Dönemler</NavText>
+                    </NavItem>
+                    <NavItem eventKey="CoursesPage">
+                      <NavIcon>
+                        <i
+                          className="fa fa-plus"
+                          style={{ fontSize: "1.75em" }}
+                        />
+                      </NavIcon>
+                      <NavText>Dersler</NavText>
                     </NavItem>
                     <NavItem eventKey="ConflictsPage">
                       <NavIcon>
@@ -74,12 +84,15 @@ export default class SideNavbar extends Component {
                   <Route path="/Schedule">
                     <Schedule />
                   </Route>
-                  <Route path="/Semesters">
-                    <Semesters />
+                  <Route path="/SemestersPage">
+                    <SemestersPage />
                   </Route>
                   <Route path="/ConflictsPage">
                     <ConflictsPage />
                   </Route>
+                  <Route path="/CoursesPage">
+              <CoursesPage />
+            </Route>
                   
                 </main>
               </React.Fragment>

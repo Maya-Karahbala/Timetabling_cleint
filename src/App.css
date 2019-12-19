@@ -146,7 +146,7 @@ margin-bottom: 1%;
   
 }
 .p-tree {
-  width: 16.9em !important;
+  width: 21em !important;
 }
 
 
@@ -179,6 +179,9 @@ margin-bottom: 1%;
   
     flex-wrap: nowrap;
 
+}
+body .p-inputtext {
+  width: 100%
 }
 /*
 .sidenav---sidenav-toggle---1KRjR .sidenav---icon-bar---u1f02 {

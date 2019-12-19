@@ -45,7 +45,7 @@ export const fetchDepartmentsFailure = error => {
 // set delected department and loged in user info
 
 export const updateSelcectedDepartment = (payload) => {
-  
+  console.log("update semester ")
     return {
       type: Types.UPDATE_SELECTED_DEPARTMENT,
       payload: payload

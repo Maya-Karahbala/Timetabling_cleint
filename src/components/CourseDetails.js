@@ -46,7 +46,8 @@ getTeacherColor=()=>{
             )}</div>
           </pre>
           <pre>Ders kodu          :{this.props.selectedCourse.Opened_course.Department_course.Course.code+" ( id : "+this.props.selectedCourse.id+" )"} </pre>
-          <pre>Başlangıç saat     :{this.props.selectedCourse.weekDay +" "+this.props.selectedCourse.startingHour} </pre> 
+          <pre>Ders günü          :{this.props.selectedCourse.weekDay} </pre> 
+          <pre>Ders saati         :{this.props.selectedCourse.startingHour} </pre> 
         </div>
     );
   }

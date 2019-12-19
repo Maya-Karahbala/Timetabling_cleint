@@ -6,12 +6,8 @@ import { fetchDepartments, updateSelcectedDepartment,fetchData,updateSelectedSem
 
 //
 
-import {
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem
-} from "reactstrap";
+
+import { Dropdown } from "primereact/dropdown";
 import "../login.css";
 import { BrowserRouter as Router, Switch, Route, Link,Redirect } from "react-router-dom";
 
@@ -25,8 +21,8 @@ function Login({
   updateSelectedSemester,
   fetchData
 }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedDep, setSelectedDep] = useState({});
+  // hard coded must be the first dep fetched from database
+  const [selectedDep, setSelectedDep] = useState({id:1});
   const [mail, setMail] = useState("ahmet.ak@gmail.com");
   const [password, setPassword] = useState("ahmet");
 
@@ -35,9 +31,10 @@ function Login({
   var users = [];
 
   useEffect(() => {
-  
-    fetchDepartments();
+    fetchDepartments()
+    //setSelectedDep(departmentData.departments.get(0))
   }, []);
+  
 
   const mailChangeHandler = event => {
     setMail(event.target.value);
@@ -45,36 +42,19 @@ function Login({
   const passwordChangeHandler = event => {
     setPassword(event.target.value);
   };
-  const fillDropDownMenu = () => {
+  const depsForDropDown = () => {
     let deps = [];
-    // departmentData.departments props stored in redux store
     for (var [key, value] of departmentData.departments) {
       deps.push(value);
     }
-    // inital state for selected department is the first
+    
 
-    const header = (
-      <DropdownToggle key={selectedDep.id} className="logindepartment" caret>
-        {selectedDep.name}
-      </DropdownToggle>
-    );
-    // pop first department name because it is already shown in menu header
-
-    return [
-      header,
-      deps.map(dep => {
+      return deps.map(dep => {
         return (
-          <DropdownItem
-            onClick={() => {
-              changeDepartment(dep.id);
-            }}
-            key={dep.id}
-          >
-            {dep.name || ""}{" "}
-          </DropdownItem>
+          { label: dep.name, value: dep.id }
         );
       })
-    ];
+   
   };
 
   const fetchUsers = async () => {
@@ -95,12 +75,12 @@ function Login({
             fetchData({deparmentId:selectedDep.id ,  arrayName:"teachers"})
              
               
-            // no need for sending depid all classroom will be fetched but for using globa fetch data we send it 
-            fetchData({deparmentId:selectedDep.id  ,  arrayName:"classrooms"})
             
+            fetchData({  arrayName:"classrooms"})
+            fetchData({deparmentId:selectedDep.id , arrayName:"courses"})
             
-           
-            // open schedule
+            fetchData({  arrayName:"Semesters"})
+         
             var linkToClick = document.getElementById('something');
             
              
@@ -120,7 +100,7 @@ function Login({
     return false;
   };
 
-  const toggle = () => setDropdownOpen(prevState => !prevState);
+  
   const changeDepartment = id => {
     setSelectedDep(departmentData.departments.get(id));
   };
@@ -157,10 +137,21 @@ function Login({
       </div>
       <div className="form-group">
         <label>Bölüm</label>
-        <Dropdown isOpen={dropdownOpen} toggle={toggle}>
-          {fillDropDownMenu()[0]}
-          <DropdownMenu>{fillDropDownMenu()[1]}</DropdownMenu>
-        </Dropdown>
+        <div>
+         
+        <Dropdown 
+        style={{width:"100%"}}
+        options={depsForDropDown()}
+          value={selectedDep.id}
+          
+          onChange={e => {
+            changeDepartment(e.value)
+          }}
+         
+        />
+        </div>
+  
+    
       </div>
 
       <div className="form-group">
