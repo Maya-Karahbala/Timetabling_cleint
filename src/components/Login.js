@@ -1,40 +1,61 @@
 import React, { useState, useEffect } from "react";
 
 // redux
-import { connect ,useSelector} from "react-redux";
-import { fetchDepartments, updateSelcectedDepartment,fetchData,updateSelectedSemester } from "../redux";
+import { connect, useSelector } from "react-redux";
+import {
+  fetchDepartments,
+  filteredFetch,
+  updateSelcectedDepartment,
+  fetchData,
+  storeData
+} from "../redux";
 
 //
 
-
 import { Dropdown } from "primereact/dropdown";
 import "../login.css";
-import { BrowserRouter as Router, Switch, Route, Link,Redirect } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  Redirect
+} from "react-router-dom";
 
 // equal to component did mount in class component work only one if [] added to last part
 function Login({
   // redux inf and methods
   departmentData,
+  semestersData,
   semes,
   fetchDepartments,
   updateSelcectedDepartment,
-  updateSelectedSemester,
-  fetchData
+  fetchData,
+  filteredFetch,
+  storeData
 }) {
-  // hard coded must be the first dep fetched from database
-  const [selectedDep, setSelectedDep] = useState({id:1});
+  const [selectedDep, setSelectedDep] = useState({ id: 1 });
+  const [selectedSemester, setSelectedSemester] = useState({ id: 1 });
+  const [selectedTimetable, setSelectedTimetable] = useState(undefined);
   const [mail, setMail] = useState("ahmet.ak@gmail.com");
   const [password, setPassword] = useState("ahmet");
-
- 
 
   var users = [];
 
   useEffect(() => {
-    fetchDepartments()
-    //setSelectedDep(departmentData.departments.get(0))
+    // fetchDepartments().then(console.log("bitti"))
+    // asyncFetc(fetchDepartments).then(r=> console.log("bittimmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",r))
+    // console.log(,departmentData.departments)
+    fetchDepartments().then(deps => {
+      let tempDep = deps.values().next().value;
+      setSelectedDep(tempDep);
+    });
+
+    fetchData({ arrayName: "Semesters" }).then(semesters => {
+      setSelectedSemester(semesters[0]);
+      setSelectedTimetable(semesters[0].Timetables[0]);
+    });
   }, []);
-  
 
   const mailChangeHandler = event => {
     setMail(event.target.value);
@@ -42,19 +63,16 @@ function Login({
   const passwordChangeHandler = event => {
     setPassword(event.target.value);
   };
+
   const depsForDropDown = () => {
     let deps = [];
     for (var [key, value] of departmentData.departments) {
       deps.push(value);
     }
-    
 
-      return deps.map(dep => {
-        return (
-          { label: dep.name, value: dep.id }
-        );
-      })
-   
+    return deps.map(dep => {
+      return { label: dep.name, value: dep.id };
+    });
   };
 
   const fetchUsers = async () => {
@@ -63,30 +81,42 @@ function Login({
         .then(responce => responce.json())
         .then(data => {
           data.map(u => users.push(u));
-          let validation=isValid()
+          let validation = isValid();
           if (validation.result) {
-            updateSelcectedDepartment({department:selectedDep, user:validation.user})
-            updateSelectedSemester(1)
-            console.log("----------------+++++++++++-------------",semes)
-            fetchData({deparmentId:selectedDep.id ,semesterNo:1 ,  arrayName:"openedCoursesEvents"})
-            fetchData({deparmentId:selectedDep.id ,semesterNo:1 ,  arrayName:"ChangedOpenedCoursesEvents" ,url:"openedCoursesEvents"})
-            
+            storeData({ data: selectedSemester, varName: "selectedSemester" });
+            storeData({ data: selectedTimetable, varName: "selectedTimetable" });
+
+            updateSelcectedDepartment({
+              department: selectedDep,
+              user: validation.user
+            });
+
+            filteredFetch({
+              deparmentId: selectedDep.id,
+              semesterNo: selectedSemester.id,
+              arrayName: "openedCoursesEvents",
+              timetableId: selectedTimetable.id
+            });
+        /* filteredFetch({
+              deparmentId: selectedDep.id,
+              semesterNo: selectedSemester.id,
+              arrayName: "ChangedOpenedCoursesEvents",
+              url: "openedCoursesEvents",
+              timetableId: selectedTimetable.id
+            });*/
+
             // stored in redux state
-            fetchData({deparmentId:selectedDep.id ,  arrayName:"teachers"})
-             
-              
-            
-            fetchData({  arrayName:"classrooms"})
-            fetchData({deparmentId:selectedDep.id , arrayName:"courses"})
-            
-            fetchData({  arrayName:"Semesters"})
-         
-            var linkToClick = document.getElementById('something');
-            
-             
-              linkToClick.click();
-            
-          
+            fetchData({ deparmentId: selectedDep.id, arrayName: "teachers" });
+
+            fetchData({ arrayName: "classrooms" });
+            fetchData({ deparmentId: selectedDep.id, arrayName: "courses" });
+            setSelectedDep(departmentData.departments.entries().next().value);
+
+            //fetchData({  arrayName:"Semesters"})
+
+            var linkToClick = document.getElementById("something");
+
+            linkToClick.click();
           }
         })
         .catch(err => console.log(err));
@@ -95,25 +125,40 @@ function Login({
   const isValid = () => {
     // check if user info is valid
     for (let i = 0; i < users.length; i++) {
-      if (mail === users[i].mail && password === users[i].password) return {result:true, user:users[i]};
+      if (mail === users[i].mail && password === users[i].password)
+        return { result: true, user: users[i] };
     }
     return false;
   };
 
-  
   const changeDepartment = id => {
     setSelectedDep(departmentData.departments.get(id));
   };
-
-  return (departmentData.loading || departmentData.departments.size < 1 )? (
-    <h1><i className="fa fa-refresh fa-spin fa-3x fa-fw"></i></h1>
+  const changeSemester = id => {
+    let tempSemester = semestersData.filter(semester1 => semester1.id == id)[0];
+    setSelectedSemester(tempSemester);
+    setSelectedTimetable(tempSemester.Timetables[0]);
+  };
+  const changeTimetable = id => {
+    setSelectedTimetable(
+      selectedSemester.Timetables.filter(timetable => timetable.id == id)[0]
+    );
+  };
+  return departmentData.loading ||
+    departmentData.departments.size < 1 ||
+    selectedTimetable == undefined ||
+    semestersData == undefined ? (
+    <h1>
+      <i className="fa fa-refresh fa-spin fa-3x fa-fw"></i>
+    </h1>
   ) : departmentData.error ? (
     <h2>{departmentData.error}</h2>
   ) : (
-  
-      <div>
-        <Link id="something" to={"/SideNavbar"}>  </Link>
-       <h3>Giriş Yap</h3>
+    <div>
+      <Link id="something" to={"/SideNavbar"}>
+        {" "}
+      </Link>
+      <h3>Giriş Yap</h3>
       <div className="form-group">
         <label>E-Posta Adresi</label>
         <input
@@ -138,20 +183,57 @@ function Login({
       <div className="form-group">
         <label>Bölüm</label>
         <div>
-         
-        <Dropdown 
-        style={{width:"100%"}}
-        options={depsForDropDown()}
-          value={selectedDep.id}
-          
-          onChange={e => {
-            changeDepartment(e.value)
-          }}
-         
-        />
+          <Dropdown
+            style={{ width: "100%" }}
+            options={depsForDropDown()}
+            value={selectedDep.id}
+            onChange={e => {
+              changeDepartment(e.value);
+            }}
+          />
         </div>
-  
-    
+      </div>
+      <div className="form-group">
+        <label>Dönem</label>
+        <div>
+          <Dropdown
+            style={{ width: "100%" }}
+            options={semestersData.map(semester => {
+              return {
+                label:
+                  semester.beginning +
+                  " - " +
+                  semester.ending +
+                  " " +
+                  semester.semesterType +
+                  " Dönemi",
+                value: semester.id
+              };
+            })}
+            value={selectedSemester.id}
+            onChange={e => {
+              changeSemester(e.value);
+            }}
+          />
+        </div>
+      </div>
+      <div className="form-group">
+        <label>Takvim</label>
+        <div>
+          <Dropdown
+            style={{ width: "100%" }}
+            options={selectedSemester.Timetables.map(timetable => {
+              return {
+                label: timetable.timetableType + " Programı",
+                value: timetable.id
+              };
+            })}
+            value={selectedTimetable.id}
+            onChange={e => {
+              changeTimetable(e.value);
+            }}
+          />
+        </div>
       </div>
 
       <div className="form-group">
@@ -166,8 +248,6 @@ function Login({
           </label>
         </div>
       </div>
-      
-       
       <button
         type="submit"
         className="btn btn-primary btn-block"
@@ -178,27 +258,25 @@ function Login({
       <p className="forgot-password text-right">
         <a href="#">Şifremi unuttum?</a>
       </p>
-   
     </div>
   );
 }
 
 const mapStateToProps = state => {
-  
   return {
     departmentData: state.department,
-    semes:state.department.selectedSemester
- 
+    semestersData: state.data.Semesters,
+    semes: state.department.selectedSemester
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     fetchDepartments: () => dispatch(fetchDepartments()),
-    fetchData : data => dispatch(fetchData(data)),
+    fetchData: data => dispatch(fetchData(data)),
+    filteredFetch: data => dispatch(filteredFetch(data)),
     updateSelcectedDepartment: dep => dispatch(updateSelcectedDepartment(dep)),
-    updateSelectedSemester: (semesterNo) => dispatch(updateSelectedSemester(semesterNo))
-    
+    storeData: data => dispatch(storeData(data))
   };
 };
 

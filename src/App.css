@@ -183,6 +183,20 @@ margin-bottom: 1%;
 body .p-inputtext {
   width: 100%
 }
+body .p-treetable .p-treetable-thead > tr > th {
+  vertical-align: bottom;
+  border-bottom: 2px solid #dee2e6;
+  background-color:  white !important;
+  
+}
+
+.table td, .table th {
+  padding: 0.429em 0.857em !important;
+}
+body .p-component {
+ font-size: 16px !important; 
+}
+
 /*
 .sidenav---sidenav-toggle---1KRjR .sidenav---icon-bar---u1f02 {
  

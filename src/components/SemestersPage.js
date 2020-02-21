@@ -5,136 +5,270 @@ import { Row, Col } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
 import { connect } from "react-redux";
-import AddSemester from "./AddSemester"
-import { fetchData,updateSelectedSemester } from "../redux";
-import {
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem
-} from "reactstrap";
+import AddSemester from "./AddSemester";
+import AddTimetable from "./AddTimetable";
+import { Dropdown } from "primereact/dropdown";
+import { filteredFetch, storeData } from "../redux";
+import { TreeTable } from "primereact/treetable";
+import { Column } from "primereact/column";
+import { string } from "prop-types";
 
-
- class SemestersPage extends Component {
-  constructor(semesters,semesterId,departmentId,fetchData,updateSelectedSemester ) {
+class SemestersPage extends Component {
+  constructor(
+    semesters,
+    selectedSemesterRedux,
+    departmentId,
+    filteredFetch,
+    storeData,
+    selectedTimetable
+  ) {
     super();
 
     this.state = {
-      dropdownOpen:false,
-      semesters:[],
-      addSemesterIsOpen:false,
+      dropdownOpen: false,
+      addSemesterIsOpen: false,
+      addTimetableIsOpen: false,
+      ismounted: false,
+      nodes: []
     };
   }
-  
- componentDidMount=()=>{
- 
-   this.setState({
-     semesters:this.props.semesters, 
-     selectedSemester:this.props.semesterId
- 
-   })
- }
- close_details=()=>{
-  this.setState({
-    addSemesterIsOpen: false
-  });
-}
-toggle = () => {
-  this.setState(prev=>{
-    return{
-      dropdownOpen:!prev.dropdownOpen
-    }
-  })
-}
- fillDropDownMenu = () => {
-  const header = (
-    <DropdownToggle caret className="logindepartment">
-      {"  "}{"  "+this.state.selectedSemester+"  "}{"  "}
-    </DropdownToggle>
-  );
 
-  // pop first department name because it is already shown in menu header
-  return [
-    header,
-    this.state.semesters.map(semester => {
-      if(semester.id!= this.state.selectedSemester){
-        return (
-          <DropdownItem
-            onClick={() => {
-             this.setState({
-              selectedSemester:semester.id
-             })
-             
-             this.props.updateSelectedSemester(semester.id)
-             this.props.fetchData({deparmentId:this.props.departmentId ,semesterNo:semester.id ,  arrayName:"openedCoursesEvents"})
-             this.props. fetchData({deparmentId:this.props.departmentId ,semesterNo:semester.id ,  arrayName:"ChangedOpenedCoursesEvents" ,url:"openedCoursesEvents"})
+  componentDidMount = () => {
+    this.setState({
+      selectedSemester: this.props.selectedSemesterRedux,
+      selectedTimetable: this.props.selectedTimetable,
+      nodes: this.getTabledata(this.props.semesters),
+      ismounted: true
+    });
+  };
+  updateStore=()=> {
+    // if timetable or semester is changes fetch course events amd update 
+    // semester and time table in redux store 
+    if(this.props.selectedSemesterRedux!= this.state.selectedSemester ||
+      this.props.selectedTimetable!= this.state.selectedTimetable
+      ){
+        console.log("xxxxxxxxxxxxxx", this.state.selectedSemester, this.state.selectedTimetable)
+        this.props.storeData({varName:"selectedSemester" ,data: this.state.selectedSemester});
+        this.props.storeData({varName:"selectedTimetable" ,data: this.state.selectedTimetable});
+        /*this.props.filteredFetch({
+          deparmentId: this.props.departmentId,
+          semesterNo: this.state.selectedSemester.id,
+          arrayName: "ChangedOpenedCoursesEvents",
+          url: "openedCoursesEvents",
+          timetableId: this.state.selectedTimetable.id
+        }).then(r=>{
+          console.log("xxxx changes filtered fetch",r)
+        })*/
+        this.props.filteredFetch({
+          deparmentId: this.props.departmentId,
+          semesterNo: this.state.selectedSemester.id,
+          arrayName: "openedCoursesEvents",
+          timetableId: this.state.selectedTimetable.id
+        }).then(r=>{
+          console.log("xxxx filtered fetch",r)
+        })
         
-            }}
-            key={semester.id}
-          >
-            {semester.id || ""}{" "}
-          </DropdownItem>
-        );
+       
+        console.log(this.props.selectedSemesterRedux== this.state.selectedSemester)
+        console.log(this.props.selectedSemesterRedux, this.state.selectedSemester)
+        console.log(this.props.selectedTimetable== this.state.selectedTimetable)
+        console.log(this.props.selectedTimetable, this.state.selectedTimetable)
       }
-  
-    })
-  ];
-};
+
+  }
+
+  getTabledata = semesters => {
+    let i, j;
+    let result = [];
+    let tempRowData;
+    for (i = 0; i < semesters.length; i++) {
+      tempRowData = {
+        key: String(i),
+        data: {
+          //id: semesters[i].id,
+          type: semesters[i].semesterType,
+          starting: semesters[i].beginning,
+          ending: semesters[i].ending
+        },
+        children: []
+      };
+      for (j = 0; j < semesters[i].Timetables.length; j++) {
+        tempRowData.children.push({
+          key: String(i + "-" + j),
+          data: {
+            // id: semesters[i].Timetables[j].id,
+            type: semesters[i].Timetables[j].timetableType + " Programı",
+            starting: semesters[i].Timetables[j].beginning,
+            ending: semesters[i].Timetables[j].ending
+          }
+        });
+      }
+      result.push(tempRowData);
+    }
+    return result;
+  };
+  close_details = () => {
+    this.setState({
+      addSemesterIsOpen: false,
+      addTimetableIsOpen: false,
+      nodes: this.getTabledata(this.props.semesters)
+    });
+    // update timetables in selected semester
+    const selectedSemester = this.props.semesters.filter(
+      semester1 => semester1.id == this.state.selectedSemester.id
+    )[0];
+    this.setState({ selectedSemester: selectedSemester });
+    this.props.storeData({
+      varName: "selectedSemester",
+      data: selectedSemester
+    });
+  };
+
+  toggle = () => {
+    this.setState(prev => {
+      return {
+        dropdownOpen: !prev.dropdownOpen
+      };
+    });
+  };
+  changeTimetable = id => {
+    const selectedTimetable1 = this.state.selectedSemester.Timetables.filter(
+      timetable => timetable.id == id
+    )[0];
+    this.setState({
+       selectedTimetable: selectedTimetable1 
+  }, () => {
+      this.updateStore();
+  });
+   // this.setState({ selectedTimetable: selectedTimetable1 });
+  };
+  changeSemester = id => {
+    const selectedSemester = this.props.semesters.filter(
+      semester1 => semester1.id == id
+    )[0];
+    this.setState({
+      selectedSemester: selectedSemester,
+      selectedTimetable: selectedSemester.Timetables[0]
+ }, () => {
+     this.updateStore();
+ });
+  //  this.setState({ selectedSemester: selectedSemester });
+  //  this.setState({ selectedTimetable: selectedSemester.Timetables[0] });
+
+  };
 
   render() {
-    let semestersRows=this.props.semesters.map(semester=>{
-      return(
-        <tr>
-        <td>{semester.id}</td>
-        <td>{semester.beginning}</td>
-        <td>{semester.ending}</td>
-        <td>{semester.semesterType}</td>
-      </tr>
-      )
-     
-   })
-    
+    console.log("render edili ------------");
     return (
       <>
-        <Row style={{ marginTop: "3%", width:"100%" }}>
-          <Col lg={1}></Col>
-        
-          <Col lg={5}>
-            <h3>Dönemler</h3>
-            <Table  bordered hover>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th >Başlangıç Tarihi</th>
-                  <th>Bitiş Tarihi</th>
-                  <th>Dönem Türü</th>
-                
-                </tr>
-              </thead>
-              <tbody>
-               {semestersRows}
-              </tbody>
-            </Table>
-            <AddSemester details_is_open={this.state.addSemesterIsOpen} close_details={this.close_details}/>
-            <Button onClick={()=>{this.setState({addSemesterIsOpen:true})}}>Dönem Ekle</Button>
+        {this.state.ismounted ? (
+          <div>
+            <Row style={{ marginTop: "3%", width: "100%" }}>
+              <Col lg={1}></Col>
+              <Col lg={6}>
+                <div>
+                  <h3>Dönemler</h3>
+                </div>
+              </Col>
+              <Col lg={3}>
+                <Button
+                  onClick={() => {
+                    this.setState({ addSemesterIsOpen: true });
+                  }}
+                >
+                  Dönem Ekle
+                </Button>
+              </Col>
+            </Row>
+            <Row style={{ marginTop: "1%", width: "100%" }}>
+              <Col lg={1}></Col>
 
-         
-          </Col>
-        </Row>
-        <Row style={{ marginTop: "3%", width:"100%" }}>
-        <Col lg={1}></Col>
-        <Col lg={5}>
-        <div className="form-group">
-              <h1></h1>
-        <h3>Varsayılan dönem</h3>
-        <Dropdown isOpen={this.state.dropdownOpen} toggle={this.toggle} >
-          {this.fillDropDownMenu()[0]}
-          <DropdownMenu>{this.fillDropDownMenu()[1]}</DropdownMenu>
-        </Dropdown>
-      </div>
-        </Col>
-     
-        </Row>
+              <Col lg={7}>
+                <TreeTable value={this.state.nodes} style={{ width: "104%" }}>
+                  <Column field="type" header="Dönem Türü" expander></Column>
+                  <Column field="starting" header="Başlangıç Tarihi"></Column>
+                  <Column field="ending" header="Bitiş Tarihi"></Column>
+                </TreeTable>
+                <AddSemester
+                  details_is_open={this.state.addSemesterIsOpen}
+                  close_details={this.close_details}
+                />
+                <AddTimetable
+                  details_is_open={this.state.addTimetableIsOpen}
+                  close_details={this.close_details}
+                  changeSemester={this.changeSemester}
+                />
+                <h1></h1>
+              </Col>
+            </Row>
+            <Row style={{ marginTop: "3%", width: "100%" }}>
+              <Col lg={1}></Col>
+              <Col lg={3}>
+                <div className="form-group">
+                  <h1></h1>
+                  <h3>Varsayılan dönem</h3>
+                  <div>
+                    <Dropdown
+                      style={{ width: "100%" }}
+                      options={this.props.semesters.map(semester => {
+                        return {
+                          label:
+                            semester.beginning +
+                            " - " +
+                            semester.ending +
+                            " " +
+                            semester.semesterType +
+                            " Dönemi",
+                          value: semester.id
+                        };
+                      })}
+                      value={this.state.selectedSemester.id}
+                      onChange={e => {
+                        this.changeSemester(e.value);
+                      }}
+                    />
+                  </div>
+                </div>
+              </Col>
+
+              <Col lg={3}  style={{ marginTop: "3%" }}>
+                <div className="form-group">
+                  <h1></h1>
+                  
+
+                  <div >
+                    <Dropdown
+                      style={{ width: "100%" }}
+                      options={this.state.selectedSemester.Timetables.map(
+                        timetable => {
+                          return {
+                            label: timetable.timetableType + " Programı"+ timetable.id,
+                            value: timetable.id
+                          };
+                        }
+                      )}
+                      value={this.state.selectedTimetable.id}
+                      onChange={e => {
+                        this.changeTimetable(e.value);
+                      }}
+                    />
+                  </div>
+                </div>
+              </Col>
+              <Col lg={3} style={{ marginTop: "3.5%" }}>
+                <Button
+                  onClick={() => {
+                    this.setState({ addTimetableIsOpen: true });
+                  }}
+                >
+                  Takvim Ekle
+                </Button>
+              </Col>
+            </Row>
+          </div>
+        ) : (
+          ""
+        )}
       </>
     );
   }
@@ -143,16 +277,16 @@ toggle = () => {
 const mapStateToProps = state => {
   return {
     departmentId: state.department.selectedDepartment.id,
-    semesterId: state.department.selectedSemester,
-    semesters:state.data.Semesters
+    selectedSemesterRedux: state.department.selectedSemester,
+    semesters: state.data.Semesters,
+    selectedTimetable: state.department.selectedTimetable
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchData : data => dispatch(fetchData(data)),
-    updateSelectedSemester: (semesterNo) => dispatch(updateSelectedSemester(semesterNo))
- 
+    filteredFetch: data => dispatch(filteredFetch(data)),
+    storeData: data => dispatch(storeData(data))
   };
 };
 

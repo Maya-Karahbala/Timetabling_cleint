@@ -7,13 +7,15 @@ export const fetchDepartments = () => {
   return (dispatch) => {
     dispatch(fetchDepartmentsRequest())
       let departments=new Map()
-      fetch("http://localhost:3004/departments")
+      return fetch("http://localhost:3004/departments")
       .then(response => response.json())
       .then(data => {
+        
         JSON.parse(JSON.stringify(data)).map(dep => {
           departments.set(dep.id, dep);
         });
         dispatch(fetchDepartmentsSuccess(departments))
+        return data
       })
       .catch(error => {
         // error.message is the error message
@@ -45,9 +47,16 @@ export const fetchDepartmentsFailure = error => {
 // set delected department and loged in user info
 
 export const updateSelcectedDepartment = (payload) => {
-  console.log("update semester ")
     return {
       type: Types.UPDATE_SELECTED_DEPARTMENT,
+      payload: payload
+    }
+    
+  }
+  export const storeData = (payload) => {
+  
+    return {
+      type: Types.STORE_DATA,
       payload: payload
     }
     
@@ -55,11 +64,13 @@ export const updateSelcectedDepartment = (payload) => {
   export const updateSelectedSemester = (payload) => {
   
     return {
-      type: Types.UPDATE_SELECTED_SEMESTER,
+      type: Types.STORE_DATA,
       payload: payload
     }
     
   }
+  
+
 
 
 

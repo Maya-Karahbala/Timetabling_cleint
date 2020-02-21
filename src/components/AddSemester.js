@@ -1,38 +1,31 @@
 import React, { Component } from "react";
 import { Modal, Button, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
-import { Calendar } from "primereact/calendar";
-import { fetchData } from "../redux";
-import { Row, Col } from "react-bootstrap";
 import Form from "react-bootstrap/Form";
 import { connect } from "react-redux";
-var es = {
-  //  firstDayOfWeek: 0,
-  dayNamesMin: ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
-  monthNames: [
-    "Ocak",
-    "Şubat",
-    "Mart",
-    "Nisan",
-    "Mayıs",
-    "Haziran",
-    "Temmuz",
-    "Ağustos",
-    "Eylül",
-    "Ekim",
-    "Kasım",
-    "Aralık"
-  ],
-  dateFormat: "dd/mm/yy"
-};
+import {fetchData} from "../redux";
 class AddSemester extends Component {
   constructor(fetchData) {
     super();
 
+    
     this.state = {
-      startingDate: new Date(),
-      endingDate: new Date(),
+        startingYear:new Date().getFullYear(),
+        endingYear:new Date().getFullYear(),
       SemesterType: "Bahar"
     };
+  }
+   
+ 
+  getYears(){
+    var result = [];
+    let thisYear=new Date().getFullYear()
+    for (let i =thisYear ; i < thisYear+10; i++) {
+        result.push(i.toString());
+    }
+    return result.map(year=>{
+        return      <option>{year}</option>
+    })
+    
   }
   handleSubmit = () => {
     fetch("http://localhost:3004/addSemester", {
@@ -40,8 +33,8 @@ class AddSemester extends Component {
       body: JSON.stringify({
         semester: {
           semesterType: this.state.SemesterType,
-          beginning: this.state.startingDate,
-          ending: this.state.endingDate
+          beginning: this.state.startingYear,
+          ending: this.state.endingYear
         }
       })
     }).then(response => {
@@ -50,42 +43,51 @@ class AddSemester extends Component {
         /*response.json().then(json => {
           console.log("----------",json);
         });*/
-        this.props.fetchData({ arrayName: "Semesters" });
-        this.props.close_details();
+        this.props.fetchData({ arrayName: "Semesters" }).then((semesters)=>{
+          console.log("semesters fetched ",semesters)
+          this.props.close_details();
+        
+        })
+        
       }
-      console.log(response);
-    });
+     
+     
+    })
   };
   render() {
     return (
       <Modal isOpen={this.props.details_is_open}>
         <ModalHeader> Dönem Ekle </ModalHeader>
         <ModalBody>
-    
-              <Form.Group controlId="exampleForm.ControlInput1">
-                <Form.Label>Başlangıç Tarihi</Form.Label>
-                <div>
-                  <Calendar
-                    locale={es}
-                    value={this.state.startingDate}
-                    onChange={e => this.setState({ startingDate: e.value })}
-                    showIcon={true}
-                    style={{width:"80%"}}
-                  ></Calendar>
-                </div>
+  
+        <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>Başlangıç yılı</Form.Label>
+                <Form.Control
+                  as="select"
+                  style={{width:"86%"}}
+                  onChange={e =>
+                    this.setState({ startingYear: e.target.value })
+                  }
+                >
+                   {this.getYears()}
+                   
+                </Form.Control>
               </Form.Group>
-              <Form.Group controlId="exampleForm.ControlInput1">
-                <Form.Label>Bitiş Tarihi</Form.Label>
-                <div>
-                  <Calendar
-                    locale={es}
-                    value={this.state.endingDate}
-                    onChange={e => this.setState({ endingDate: e.value })}
-                    showIcon={true}
-                    style={{width:"80%"}}
-                  ></Calendar>
-                </div>
+
+              <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>Bitiş yılı</Form.Label>
+                <Form.Control
+                  as="select"
+                  style={{width:"86%"}}
+                  onChange={e =>
+                    this.setState({ endingYear: e.target.value })
+                  }
+                >
+                   {this.getYears()}
+                   
+                </Form.Control>
               </Form.Group>
+             
               <Form.Group controlId="exampleForm.ControlSelect1">
                 <Form.Label>Dönem Türü</Form.Label>
                 <Form.Control
@@ -117,8 +119,9 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchData: data => dispatch(fetchData(data))
-  };
+    fetchData : data => dispatch(fetchData(data)),
+   
 };
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddSemester);

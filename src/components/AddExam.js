@@ -1,3 +1,4 @@
+
 import React, { Component } from "react";
 import { Modal, Button, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 
@@ -8,11 +9,12 @@ import { Dropdown } from "primereact/dropdown";
 import { MultiSelect } from "primereact/multiselect";
 import { filteredFetch } from "../redux";
 const eventTypes = [
-  { label: " Teorik ", value: "Teorik" },
-  { label: " Lab ", value: "Lab" }
+  { label: "Vize", value: "Vize" },
+  { label: "Final", value: "Final" },
+  { label: "Bütünleme", value: "Bütünleme" }
 ];
-class AddCourseEvent extends Component {
-  constructor(departmentId, selectedTimetable,semesterId, teachers, classrooms,filteredFetch,selectedSemester) {
+class AddExam extends Component {
+  constructor(departmentId, semesterId, teachers, classrooms,filteredFetch,selectedSemester) {
     super();
 
     this.state = {
@@ -29,7 +31,7 @@ class AddCourseEvent extends Component {
       eventType: eventTypes[0].value,
       selectedTeachers: [this.props.teachers[0]],
       selectedClassrooms: [this.props.classrooms[0]],
-      
+      dersTimeTableId:this.getDersTimeTableId(this.props.selectedSemester),
      
    
     },()=>{
@@ -39,7 +41,7 @@ class AddCourseEvent extends Component {
       console.log("",this.openedCourseId)
       console.log( "this.state.selectedTeachers ",this.state.selectedTeachers)
       console.log( "this.state.selectedClassrooms ",this.state.selectedClassrooms)
-   
+      console.log("dersTimeTableId", this.getDersTimeTableId(this.props.selectedSemester))
     }
    
     );
@@ -71,7 +73,10 @@ class AddCourseEvent extends Component {
   };
   openedCourseId = undefined;
   CourseEventId = undefined;
-
+  getDersTimeTableId=(selectedSemester)=>{
+     return selectedSemester.Timetables.filter(timetable=>timetable.timetableType=="Ders")[0].id
+    
+  }
   addOpenedCourse = openCourse => {
     return fetch("http://localhost:3004/addOpendCourse", {
       method: "post",
@@ -95,7 +100,7 @@ class AddCourseEvent extends Component {
             let evt = {
               eventType: this.state.eventType,
               duration: this.getDuration(),
-              timetableId:this.props.selectedTimetable.id,
+              timetableId:this.state.dersTimeTableId,
               startingHour: "",
               weekDay: "",
               openedCourseId: this.openedCourseId
@@ -137,12 +142,12 @@ class AddCourseEvent extends Component {
              this.secondFunction2()
              ]).then(()=>{
               //this.props.fetchData({deparmentId:this.props.departmentId , arrayName:"courses"})
-             
+              let courseTimetableId= this.props.selectedSemester.Timetables.filter(timetable=>timetable.timetableType=="Ders")[0].id
              
 
 
-              this.props.filteredFetch({deparmentId:this.props.departmentId ,semesterNo:this.props.semesterId,  arrayName:"openedCoursesEvents",timetableId:this.props.selectedTimetable.id})
-           //  this.props. filteredFetch({deparmentId:this.props.departmentId ,semesterNo:this.props.semesterId ,  arrayName:"ChangedOpenedCoursesEvents" ,url:"openedCoursesEvents",timetableId:this.props.selectedTimetable.id})
+              this.props.filteredFetch({deparmentId:this.props.departmentId ,semesterNo:this.props.semesterId,  arrayName:"openedCoursesEvents",timetableId:courseTimetableId})
+             //  this.props. filteredFetch({deparmentId:this.props.departmentId ,semesterNo:this.props.semesterId ,  arrayName:"ChangedOpenedCoursesEvents" ,url:"openedCoursesEvents",timetableId:courseTimetableId})
            
              })
              console.log("  fetch ekleme bitti            this.props.selectedCourse            ",this.props.selectedCourse);
@@ -229,7 +234,7 @@ class AddCourseEvent extends Component {
         let evt = {
             eventType: this.state.eventType,
             duration: this.getDuration(),
-            timetableId:this.props.selectedTimetable.id,
+            timetableId:this.state.dersTimeTableId,
             startingHour: "",
             weekDay: "",
             openedCourseId: this.openedCourseId
@@ -244,10 +249,10 @@ class AddCourseEvent extends Component {
       <div>
         {this.state.didMount ? (
           <Modal isOpen={this.props.addCourseEventIsOpen}>
-            <ModalHeader> Grup Ekle </ModalHeader>
+            <ModalHeader> Sınav Ekle </ModalHeader>
             <ModalBody>
               <Form.Group controlId="exampleForm.ControlInput1">
-                <Form.Label> Ders Türü</Form.Label>
+                <Form.Label> Sınav Türü</Form.Label>
                 <div style={{ width: "100%" }}>
                   <Dropdown
                     value={this.state.eventType}
@@ -259,7 +264,7 @@ class AddCourseEvent extends Component {
                 </div>
               </Form.Group>
               <Form.Group controlId="exampleForm.ControlInput1">
-                <Form.Label> Öğretim Üyesi</Form.Label>
+                <Form.Label> Gözetmen</Form.Label>
                 <div>
                   <MultiSelect
                     style={{ width: "100%" }}
@@ -288,6 +293,21 @@ class AddCourseEvent extends Component {
                   />
                 </div>
               </Form.Group>
+              <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>Süre</Form.Label>
+                <Form.Control
+                  as="select"
+                  style={{width:"86%"}}
+                  onChange={e =>
+                    this.setState({ timetableType: e.target.value })
+                  }
+                >
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                </Form.Control>
+              </Form.Group>
             </ModalBody>
             <ModalFooter>
               <Button
@@ -313,8 +333,7 @@ const mapStateToProps = state => {
     semesterId: state.department.selectedSemester.id,
     teachers: state.data.teachers,
     classrooms: state.data.classrooms,
-    selectedSemester:state.department.selectedSemester,
-    selectedTimetable:state.department.selectedTimetable
+    selectedSemester:state.department.selectedSemester
   };
 };
 
@@ -324,4 +343,4 @@ const mapDispatchToProps = dispatch => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(AddCourseEvent);
+export default connect(mapStateToProps, mapDispatchToProps)(AddExam);

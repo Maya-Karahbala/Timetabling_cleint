@@ -4,6 +4,7 @@ import { Row, Col } from "react-bootstrap";
 import { connect } from "react-redux";
 import Table from "react-bootstrap/Table";
 import AddCourseEvent from "./AddCourseEvent";
+import AddExam from "./AddExam";
 import Button from "react-bootstrap/Button";
 
 class CoursesPage extends Component {
@@ -11,13 +12,15 @@ class CoursesPage extends Component {
     departmentId,
     semesterId,
     depCourses,
-    changedOpenedCoursesEvents
+    changedOpenedCoursesEvents,
+    exams
   ) {
     super();
 
     this.state = {
       didMount: false,
-      addCourseEventIsOpen: false
+      addCourseEventIsOpen: false,
+      addExamIsOpen: false
     };
   }
   componentDidMount = () => {
@@ -27,10 +30,16 @@ class CoursesPage extends Component {
   };
 
   close_details = () => {
+    console.log("close details ---- ",this.props.depCourses)
     this.setState({
-      addCourseEventIsOpen: false
+      addCourseEventIsOpen: false,
+      addExamIsOpen:false
     });
+    
   };
+  addOpenedCourse=(openedCourse, course)=>{
+     course.Opened_courses.push(openedCourse)
+  }
   render() {
    
     return (
@@ -117,10 +126,92 @@ class CoursesPage extends Component {
                 </Table>
               </Col>
             </Row>
+
+
+
+
+            <Row style={{ marginTop: "3%", width: "100%" }}>
+              <Col lg={1}></Col>
+              <Col lg={7}>
+                <div>
+                  <h3>Sınavlar</h3>
+                </div>
+              </Col>
+              <Col lg={3}>
+                <Button
+                  style={{ marginLeft: "-3%" }}
+                  onClick={() => {
+                    this.setState({ addExamIsOpen: true });
+                  }}
+                >
+                  Sınav Ekle
+                </Button>
+              </Col>
+            </Row>
+            <Row style={{ marginTop: "1%", width: "100%" }}>
+              <Col lg={1}></Col>
+              <Col lg={8}>
+                <Table bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Sınav Türü</th>
+                      <th>Gözetman</th>
+                      <th>Derslik</th>
+                      <th>Süre</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {this.props.exams.map(evt => {
+                      if (
+                        evt.Opened_course.Department_course.id ===
+                        this.state.depCourse.id
+                      ) {
+                        return (
+                          <tr key={evt.id}>
+                            <td>{evt.eventType}</td>
+
+                            <td>
+                              {evt.Event_teachers.map(
+                                t =>
+                                  t.Department_Teacher.Teacher.firstName +
+                                  " " +
+                                  t.Department_Teacher.Teacher.lastName
+                              ) + " "}
+                            </td>
+                            <td>
+                              {evt.Event_classrooms.map(
+                                e => e.Classroom.code + " "
+                              )}
+                            </td>
+                            <td>{evt.duration}</td>
+                          </tr>
+                        );
+                      }
+                    })}
+                  </tbody>
+                </Table>
+              </Col>
+            </Row>
+
+
+
+
+
+
+
+
+
             <AddCourseEvent
               addCourseEventIsOpen={this.state.addCourseEventIsOpen}
               close_details={this.close_details}
               selectedCourse={this.state.depCourse}
+              addOpenedCourse={this.addOpenedCourse}
+            />
+             <AddExam
+              addCourseEventIsOpen={this.state.addExamIsOpen}
+              close_details={this.close_details}
+              selectedCourse={this.state.depCourse}
+              addOpenedCourse={this.addOpenedCourse}
             />
           </div>
         ) : (
@@ -133,9 +224,10 @@ class CoursesPage extends Component {
 const mapStateToProps = state => {
   return {
     departmentId: state.department.selectedDepartment.id,
-    semesterId: state.department.selectedSemester,
+    semesterId: state.department.selectedSemester.id,
     depCourses: state.data.courses,
-    changedOpenedCoursesEvents: state.data.ChangedOpenedCoursesEvents
+    changedOpenedCoursesEvents: state.data.ChangedOpenedCoursesEvents,
+    exams:state.data.ChangedOpenedCoursesEvents
   };
 };
 
@@ -144,15 +236,3 @@ const mapDispatchToProps = dispatch => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(CoursesPage);
-/*
-
-    <Dropdown
-          value={this.state.city}
-          options={citySelectItems}
-          onChange={e => {
-            this.setState({ city: e.value });
-          }}
-          placeholder="Select a City"
-        />
-
-        */

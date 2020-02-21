@@ -30,8 +30,16 @@ const teacherReducer = (state = initialState, action) => {
         ...state,
       [action.payload.arrayName]:    action.payload.data,
       };
+      case Types.FILTERD_FETCH:
+          return {
+            ...state,
+            loading: false,
+            [action.payload.arrayName]: action.payload.data.filter(evt=> evt.timetableId==action.payload.timetableId),
+            ChangedOpenedCoursesEvents :action.payload.data.filter(evt=> evt.timetableId==action.payload.timetableId),
+           // [action.payload.arrayName+"Exams"]: action.payload.data.filter(evt=> evt.timetableId!=action.payload.timetableId),
+            error: ""
+          };
       
-
     default:
       return state;
   }

@@ -8,6 +8,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import Login from "./components/Login";
 import Schedule from "./components/Schedule";
 import SideNavbar from "./components/SideNavbar";
+
 import SemestersPage from "./components/SemestersPage"
 import CoursesPage from "./components/CoursesPage"
 
@@ -38,12 +39,14 @@ export default class App extends Component {
             <Route path="/SideNavbar">
               <SideNavbar />
             </Route>
+     
             <Route path="/SemestersPage">
               <SemestersPage />
             </Route>
             <Route path="/CoursesPage">
               <CoursesPage />
             </Route>
+          
           </Switch>
         </Router>
       </Provider>

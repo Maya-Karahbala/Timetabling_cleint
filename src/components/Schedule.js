@@ -2,9 +2,6 @@ import React from "react";
 
 import Cell from "./Cell";
 import My_Modal from "./My_Modal";
-import ConflictTree from "./ConflictsPage";
-
-import { useSelector } from "react-redux";
 import _ from "lodash";
 import GridLayout from "react-grid-layout";
 
@@ -13,7 +10,7 @@ import { Row, Col } from "react-bootstrap";
 import { Alert } from "reactstrap";
 //
 import { connect } from "react-redux";
-import { fetchData, updateChangedCourses } from "../redux";
+import { filteredFetch, updateChangedCourses } from "../redux";
 
 import {
   isTimeConsflicted,
@@ -67,17 +64,18 @@ for (let i = 0; i < row; i++) {
 class Schedule extends React.Component {
   constructor(
     departmentData,
-    fetchData,
+    filteredFetch,
     reduxChangedCourses,
     updateChangedCourses,
-    changedIdes
+    changedIdes,
+    selectedSemester,
+    selectedTimetable
   ) {
     super();
 
     this.toggle_details = this.toggle_details.bind(this);
     this.toggle_unsceduled_details = this.toggle_unsceduled_details.bind(this);
     this.close_details = this.close_details.bind(this);
-    //this.componentWillMount = this.componentWillMount.bind(this);
     this.get_sceduled_cource_html = this.get_sceduled_cource_html.bind(this);
     this.get_changed_Courses = this.get_changed_Courses.bind(this);
     this.toggle_alert = this.toggle_alert.bind(this);
@@ -94,7 +92,7 @@ class Schedule extends React.Component {
 
       alertVisble: false
 
-      // {Event_teachers:[{Department_Teacher:[{Teacher:{firstName:""}}]}], Opened_course: { Department_course: { Course: {} } } }
+
     };
   }
 
@@ -108,11 +106,10 @@ class Schedule extends React.Component {
   _isMounted = false;
   /*---------------------------------- react hooks-------------------------------------------------------*/
 
-  //componentWillMount() {
   componentDidMount() {
     this._isMounted = true;
     departmentId = this.props.departmentData.selectedDepartment.id;
-    semesterId = this.props.departmentData.selectedSemester;
+    semesterId = this.props.departmentData.selectedSemester.id;
     console.log("----------reduxCourses-------------", this.props.reduxCourses);
     console.log(
       "----------reduxChangedCourses-------------",
@@ -121,16 +118,21 @@ class Schedule extends React.Component {
 
     this.getAllCourses();
   }
-  componentWillUnmount() {
-    // setting cell width
-
-    this._isMounted = false;
+  componentWillReceiveProps=(props)=>{
+    console.log("componentWillReceiveProps my props is ", props)
+    this.setState({})
   }
+  componentDidUpdate=(props)=>{
+    console.log("componentDidUpdate my props is ", props)
+  
+  }
+  
   componentWillUnmount() {
+    this._isMounted = false;
     let allChangedCourse = this.state.scheduledCourses.concat(
       this.state.unscheduledCourses
     );
-    console.log(allChangedCourse);
+    console.log("allChangedCourse",allChangedCourse);
     this.props.updateChangedCourses({
       //data:   JSON.parse(JSON.stringify(allChangedCourse))  ,
       data: allChangedCourse,
@@ -274,19 +276,21 @@ class Schedule extends React.Component {
       this.courses.set(course.id, course);
     });
     // courses with unsaved changes
-    //let CoursesCopy = JSON.parse(JSON.stringify(this.props.reduxChangedCourses));
-    let CoursesCopy = this.props.reduxChangedCourses;
+     //let CoursesCopy = JSON.parse(JSON.stringify(this.props.reduxChangedCourses));
+     // copy array without references to store initial course values
+    let CoursesCopy =_.cloneDeep( this.props.reduxChangedCourses);
     CoursesCopy.map(d => {
       // for controling cell width
       d.width = this.getCellwidth(d);
       d.conflicts = [];
       d.universityConflicts = [];
-
+     
       !d.weekDay.length
         ? // if event is unsceduled
           unscheduled.push(d)
         : scheduled.push(d);
     });
+
     this.setState(
       {
         scheduledCourses: scheduled,
@@ -520,8 +524,8 @@ class Schedule extends React.Component {
       let tempObject = {};
       newCourse = this.getCourse(id).course;
       oldCourse = this.courses.get(Number(id));
-
-      if (!_.isEqual(newCourse, oldCourse)) {
+      console.log(newCourse,newCourse,)
+      if (!_.isEqual("newCourse", oldCourse,"oldCourse",oldCourse)) {
         if (newCourse.startingHour !== oldCourse.startingHour) {
           tempObject.startingHour = newCourse.startingHour;
         }
@@ -549,10 +553,13 @@ class Schedule extends React.Component {
           data: [],
           arrayName: "changedIdes"
         });
-        this.props.fetchData({
+
+        
+        this.props.filteredFetch({
           deparmentId: departmentId,
           semesterNo: semesterId,
-          arrayName: "openedCoursesEvents"
+          arrayName: "openedCoursesEvents",
+          timetableId:this.props.selectedTimetable.id
         });
         this.toggle_alert();
         setTimeout(() => {
@@ -825,13 +832,15 @@ const mapStateToProps = state => {
     departmentData: state.department,
     reduxCourses: state.data.openedCoursesEvents,
     reduxChangedCourses: state.data.ChangedOpenedCoursesEvents,
-    changedIdes: state.data.changedIdes
+    changedIdes: state.data.changedIdes,
+    selectedSemester:state.department.selectedSemester,
+    selectedTimetable: state.department.selectedTimetable
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    fetchData: data => dispatch(fetchData(data)),
+    filteredFetch: data => dispatch(filteredFetch(data)),
     updateChangedCourses: data => dispatch(updateChangedCourses(data))
   };
 };

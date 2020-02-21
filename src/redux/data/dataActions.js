@@ -12,10 +12,12 @@ export const   fetchData = (data) => {
       console.log("semesterStr",semesterStr)
       console.log( "llllllllllllllllllllllllllllllllllll","http://localhost:3004/"+data.arrayName+semesterStr+"/"+data.deparmentId)
       if(data.url=== undefined)data.url=data.arrayName
-       fetch("http://localhost:3004/"+data.url+semesterStr+"/"+data.deparmentId)
+       return fetch("http://localhost:3004/"+data.url+semesterStr+"/"+data.deparmentId)
       .then(response => response.json())
       .then(d => {
          dispatch( fetchSuccess({data:d, arrayName:data.arrayName}))
+         console.log("fetch bitti ",d)
+         return d
       })
       .catch(error => {
         dispatch(fetchFailure(error.message))
@@ -56,6 +58,35 @@ export const updateChangedCourses = (payload) => {
   
 }
 
+export const filteredFetch = (data) => {
+  
+  let semesterStr=""
+  return  (dispatch) => {
+
+    dispatch(fetchRequest())
+      if(data.semesterNo!==undefined)semesterStr="/"+data.semesterNo
+      console.log("semesterStr",semesterStr)
+      console.log( "llllllllllllllllllllllllllllllllllll","http://localhost:3004/"+data.arrayName+semesterStr+"/"+data.deparmentId)
+      if(data.url=== undefined)data.url=data.arrayName
+      return  fetch("http://localhost:3004/"+data.url+semesterStr+"/"+data.deparmentId)
+      .then(response => response.json())
+      .then(d => {
+         dispatch( 
+             {
+              type: Types.FILTERD_FETCH,
+              payload: {data:d, arrayName:data.arrayName,timetableId:data.timetableId}
+            }
+         )
+        // dispatch( fetchSuccess({data:d.filter(evt=> evt.timetableId!=data.timetableId), arrayName:data.arrayName+"Exams"}))
+         console.log("fetch bitti ")
+         return(d)
+      })
+      .catch(error => {
+        dispatch(fetchFailure(error.message))
+      })
+  }
+  
+}
 
 
 

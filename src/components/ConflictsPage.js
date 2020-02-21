@@ -14,7 +14,7 @@ import {
   isTeacherConsflicted
 } from "../jsFiles/Conflicts";
 class ConflictsPage extends Component {
-  constructor(departments, changedCourses, semesterId, departmentId, courses) {
+  constructor(departments, changedCourses, semesterId, departmentId, courses,timetableId) {
     super();
     this.showDepartmentConflicts = this.showDepartmentConflicts.bind(this);
     this.showConflicts = this.showConflicts.bind(this);
@@ -51,6 +51,8 @@ class ConflictsPage extends Component {
           if (
             course.Opened_course.Department_course.departmentId !==
             this.props.departmentId
+            &&
+            course.timetableId== this.props.timetableId
           )
             uniCourses.push(course);
         });
@@ -215,8 +217,8 @@ class ConflictsPage extends Component {
     this.data = [
       {
         key: "0",
-        label: "Bölüm Çakışmaları",
-        icon: "pi pi-th-large",
+        label: "  Bölüm Çakışmaları",
+        icon: "fa fa-map-marker fa-lg",
         children: [
           {
             key: "0-0",
@@ -233,8 +235,8 @@ class ConflictsPage extends Component {
       },
       {
         key: "1",
-        label: "Bölümler Arası Çakışmalar",
-        icon: "pi pi-th-large",
+        label: "  Bölümler Arası Çakışmalar",
+        icon: "fa fa-university",
         children: [
           {
             key: "1-0",
@@ -336,7 +338,7 @@ class ConflictsPage extends Component {
                       </CardText>
                     </Card>
                   </Row>
-                  <Row style={{ marginTop: "-7%"}}>
+                  <Row style={{ marginTop: "-6%"}}>
                     <Card body>
                       <CardTitle> 2. Ders Bilgileri</CardTitle>
                       <CardText>
@@ -368,8 +370,9 @@ class ConflictsPage extends Component {
 }
 const mapStateToProps = state => {
   return {
-    semesterId: state.department.selectedSemester,
+    semesterId: state.department.selectedSemester.id,
     departmentId: state.department.selectedDepartment.id,
+    timetableId:state.department.selectedTimetable.id,
     departments: state.department.departments,
     // need to be filtered now we paa all events
     changedCourses: state.data.ChangedOpenedCoursesEvents.filter(

@@ -22,10 +22,10 @@ const departmentReducer = (state = initialState, action) => {
          
 
         };
-        case Types.UPDATE_SELECTED_SEMESTER:
+        case Types.STORE_DATA:
           return {
             ...state,
-            selectedSemester:action.payload,
+            [action.payload.varName]:action.payload.data,
           };
     case Types.FETCH_DEPARTMENT_REQUEST:
       return {
@@ -45,6 +45,7 @@ const departmentReducer = (state = initialState, action) => {
         departments: new Map(),
         error: action.payload
       };
+     
   
 
     default:
