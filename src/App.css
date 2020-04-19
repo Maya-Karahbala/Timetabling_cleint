@@ -1,0 +1,216 @@
+
+ 
+  
+.react-grid-layout {
+  position: relative;
+  transition: height 200ms ease;
+}
+.react-grid-item {
+  transition: all 200ms ease;
+  transition-property: left, top;
+  
+  
+  text-align: center;
+  overflow-wrap: break-word;
+}
+.blue{
+  background-color: lightblue;
+}
+.blue:hover{
+  background-color:rgb(108, 174, 177);
+}
+.red{
+
+  background-color:#ff9999  ;
+}
+.red :hover{
+  background-color:#ff8080
+  ;
+}
+.headercell , .switch{
+  background-color: rgb(2, 107, 110);
+  color: aliceblue;
+  font-size: 100%;
+  padding-top: 0.5%;
+  
+}
+
+.switch:hover{
+  background-color:rgb(8, 92, 94);
+  font-size: 1.2em;
+  
+}
+
+.react-grid-item.cssTransforms {
+  transition-property: transform;
+}
+.react-grid-item.resizing {
+  z-index: 1;
+  will-change: width, height;
+}
+
+.react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 3;
+  will-change: transform;
+}
+
+.react-grid-item.dropping {
+  visibility: hidden;
+}
+
+.react-grid-item.react-grid-placeholder {
+  background: lime;
+  opacity: 0.4;
+ 
+}
+
+.react-grid-item > .react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-right: 2px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+}
+.sml{
+  font-size: 0.8em;
+  overflow: hidden;
+  height: 100%;
+}
+
+.remove  {
+  position: absolute;
+  right  :2px;
+  top: -4px !important;
+  cursor: pointer
+}
+.GridRow {
+margin-right: 0.5% !important;
+margin-bottom: 1%;
+
+
+}
+
+.grid{
+  background-color: azure;
+  height: 540px;
+  width: 1090px;
+  margin-left: 2%;
+
+}
+.kontrol{
+ 
+  margin-block-end: 20% !important;
+  margin-left: 40% !important;
+
+}
+.save {
+  background-color: 	rgb(34,139,34)  !important;
+ width: 80%;
+ margin-left: 0%
+}
+
+.save:hover  {
+  background-color: 	rgb(13, 88, 13)  !important;
+
+}
+.alert{
+  width: 100%;
+ margin: 0% !important;
+
+}
+.alarmRow{
+  margin: 0%;
+
+}
+.conflictTree{
+ 
+  margin-top: 8%;
+}
+.department{
+  font-size: 110% ;
+  margin-top: 5%;
+  text-align: center;
+ 
+  
+}
+.p-tree {
+  width: 21em !important;
+}
+
+
+
+.logindepartment{
+  color: black;
+  background-color: white;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #ced4da;
+  border-radius: .25rem;
+}
+.logindepartment:hover{
+  color: black;
+  background-color: white;
+  width: 100%;
+  text-align: left;
+}
+.show>.btn-secondary.dropdown-toggle {
+  color: black;
+  background-color: white;
+}
+
+.sidenav---sidenav---_2tBP {
+position: fixed !important;
+  background:rgb(1, 37, 37) !important;
+
+}
+.conflictPageRow{
+  
+    flex-wrap: nowrap;
+
+}
+body .p-inputtext {
+  width: 100%
+}
+body .p-treetable .p-treetable-thead > tr > th {
+  vertical-align: bottom;
+  border-bottom: 2px solid #dee2e6;
+  background-color:  white !important;
+  
+}
+
+.table td, .table th {
+  padding: 0.429em 0.857em !important;
+}
+body .p-component {
+ font-size: 16px !important; 
+}
+.kaydettbl {
+  /* margin-left: -4%; */
+  width: 100%;
+  margin-top: 5%;
+  margin-bottom: -20%;
+}
+/*
+.sidenav---sidenav-toggle---1KRjR .sidenav---icon-bar---u1f02 {
+ 
+  background-color: rgb(0, 1, 2) !important;
+ .sidenav---sidenav-nav---3tvij > .sidenav---sidenav-navitem---uwIJ- > .sidenav---navitem---9uL5T  {
+   color: rgb(240, 243, 245) !important;
+
+}
+}*/
+
+
