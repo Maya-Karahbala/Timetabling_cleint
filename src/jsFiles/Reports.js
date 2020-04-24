@@ -323,12 +323,13 @@ export const get_formated_Teacher_events = function(teacherEvents) {
     for (let i = 1; i < days.length-1; i++) {
 
       tempEvent = teacherEvents.filter(
-        
+        // travers week hour by hour and check if teacher has event in that hour
         evt =>{
           return isTimeConflicted(evt, {
             startingHour: new Date(2001, 1, 1, hour.substring(0, 2), 0),
-            duration: 60
-          }) && new Date(evt.eventDate).getDay() == i
+            duration: 60,
+            eventDate: new Date(evt.eventDate).getDay() == i ? evt.eventDate: new Date(null)
+          }) 
         }
      
       );

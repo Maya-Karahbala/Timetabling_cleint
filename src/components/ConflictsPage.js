@@ -56,6 +56,7 @@ class ConflictsPage extends Component {
  
         getGlobalCourses(this.props.semesterId,this.props.departmentId,this.props.timetableId)
         .then(result=>{
+         
           console.log("fitness",
           getFitness(this.props.changedCourses,result))
           console.log(this.props.teachers[0],this.props.openedCoursesEvents,result)

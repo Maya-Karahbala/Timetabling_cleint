@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { setConflicts } from "./Conflicts";
-
+import store from "../redux/store";
 import {
   get_changed_Courses,
   send_changedCourses_to_server,
@@ -22,8 +22,10 @@ export const getFitness = function(scheduleCourses, globalCourses) {
   //console.log("numberOfDepartmentConflicts",numberOfDepartmentConflicts)
   //console.log("numberOfGlobalConflicts",numberOfGlobalConflicts)
   numberOfGlobalConflicts += numberOfDepartmentConflicts;
+  //console.log("--------------çalıştı getFitness------------",numberOfGlobalConflicts)
   return 1 / (numberOfGlobalConflicts + 1);
 };
+
 // get array of courses as a input and return it with random classrooms and time values
 // schedule is an array of courses with random assigned classroom  , starting hour and date
 export const initilizeSchedule = function(data) {
@@ -40,11 +42,61 @@ export const initilizeSchedule = function(data) {
     course.eventDate =
       data.dates[Math.floor(Math.random() * data.dates.length)];
   });
-
+  // set conflicts
+  getFitness(newSchedule, [])
+  for (let i = 0; i < 28; i++) {
+    let sortedSchedule=sortScheduleByConflicts(newSchedule)
+  //  console.log("--çalıştı sortedSchedule 4", sortedSchedule)
+    newSchedule=repairEvent(sortedSchedule[0],sortedSchedule,data)
+   // console.log("------çalıştı repaired first event",i,
+  //  newSchedule)
+   // console.log("--------------çalıştı repaired sch fitneess------------",i,"  ", getFitness(newSchedule, []));
+   if(getFitness(newSchedule, [])==1)break
+    
+  }
   return newSchedule;
 };
+export const sortScheduleByConflicts= function(schedule){
+   schedule = _.cloneDeep( schedule)
+   return schedule.sort((evt1, evt2) =>  evt2.conflicts.length-evt1.conflicts.length );
+}
+export const repairEvent= function (event, schedule,data){
+// data could be changed
+let tempSchedule=_.cloneDeep( schedule)
+let tempEvent= tempSchedule.filter(evt=> evt.id==event.id)[0]
+let bestEvent= {fitness:getFitness(tempSchedule,[]), event :_.cloneDeep( tempEvent)}
+let tempFitness
+for (let i = 0; i < data.classrooms.length; i++) {
+
+  for (let j = 0; j < data.dates.length; j++) {
+
+    for (let k = 0; k < data.hours.length; k++) {
+      tempEvent.classrooms = [
+        data.classrooms[i]
+      ];
+      tempEvent.startingHour = 
+      new Date(2001, 1, 1,
+      data.hours[
+        k
+      ], 0)
+      tempEvent.eventDate =
+        data.dates[j];
+        tempFitness=getFitness(tempSchedule,[])
+    if(tempFitness> bestEvent.fitness){
+      bestEvent= {fitness:tempFitness, event :_.cloneDeep( tempEvent)}
+    }
+    if(tempEvent.conflicts.length==0)
+      return tempSchedule
+    }
+    
+  }
+  
+}
+return tempSchedule
+}
 // population is an array of initilized schedules
 export const initilizePopulation = function(size, data) {
+
   let schedules = [];
   for (let i = 0; i < size; i++) {
     schedules.push(initilizeSchedule(data));

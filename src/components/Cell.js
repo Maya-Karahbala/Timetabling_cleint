@@ -13,7 +13,7 @@ export default class Cell extends Component {
         basicTeachers = this.props.course.teachers.filter(
           teacher => teacher.role == 0
         );
-        console.log("basicTeachers",basicTeachers)
+       
     }
 
     // light red #ff8080

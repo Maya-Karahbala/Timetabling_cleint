@@ -16,7 +16,10 @@ if (course1.startingHour== null || course2.startingHour==null ) return false
     let course2startingHour = course2.startingHour.getHours();
     if (
       course2startingHour >= course1startingHour &&
-      course2startingHour <= course1endingHour
+      course2startingHour <= course1endingHour &&
+      course1.eventDate!= null&&
+      course1.eventDate === course2.eventDate
+      
     ) {
       return true;
     }
@@ -52,17 +55,14 @@ if (course1.startingHour== null || course2.startingHour==null ) return false
   }
 
   export const setConflicts = function (courses1,courses2,arrayName)  {
-   
+   let allConf=[]
     let numberOfConflicts=0
     courses1.map(course1 => {
       course1[arrayName] = [];
       courses2.map(course2 => {
         if (
-          course1.id !== course2.id &&
-          isTimeConflicted(course1, course2) &&
-          course1.eventDate === course2.eventDate&&
-          course1.eventDate!= null&&
-          course1.startingHour!=null
+          course1.id !== course2.id &&  // dont compare course with itself
+          isTimeConflicted(course1, course2) 
         ) {
           if (isClassroomConflicted(course1, course2)) {
             numberOfConflicts++
@@ -70,6 +70,7 @@ if (course1.startingHour== null || course2.startingHour==null ) return false
               type: "classroom",
               conflictedCourse: course2
             });
+            allConf.push(course1)
           }
           if (isTeacherConflicted(course1, course2)) {
             numberOfConflicts++
@@ -77,15 +78,24 @@ if (course1.startingHour== null || course2.startingHour==null ) return false
               type: "teacher",
               conflictedCourse: course2
             });
+            allConf.push(course1)
           }
           // courses is belonged to same year semester // student conflicts
-          if(course1.Opened_course.Department_course.Course.semesterNo==
-            course2.Opened_course.Department_course.Course.semesterNo){
+          //! global enevts must be controled
+          if(course1.Opened_course.Department_course.semesterNo==
+            course2.Opened_course.Department_course.semesterNo){
               numberOfConflicts++
-              numberOfConflicts++
+              course1[arrayName].push({
+                type: "student",
+                conflictedCourse: course2
+              });
+              allConf.push(course1)
+   
+              
             }
         }
       });
     });
+ //   console.log("çalıştı set conflicts",numberOfConflicts,allConf)
     return numberOfConflicts
   };

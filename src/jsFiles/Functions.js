@@ -1,10 +1,11 @@
 import _ from "lodash";
-import {hours} from "./Constants"
+
+import { hours } from "./Constants";
 
 //--------------Course(event) functions---------------------------//
 export const getGlobalCourses = (semesterId, departmentId, timetableId) => {
   let globalCourses = [];
-  // NOt:!!! timetable id condition must be filtered in server side to avoid sending big ammount of data 
+  // NOt:!!! timetable id condition must be filtered in server side to avoid sending big ammount of data
   return fetch("/openedCoursesEvents/" + semesterId)
     .then(responce => responce.json())
     .then(data => {
@@ -14,8 +15,12 @@ export const getGlobalCourses = (semesterId, departmentId, timetableId) => {
           course.Opened_course.Department_course.departmentId !==
             departmentId &&
           course.timetableId == timetableId
-        )
+        ) {
+          course.startingHour =
+            course.startingHour == null ? null : new Date(course.startingHour);
+
           globalCourses.push(course);
+        }
       });
       let copyData = JSON.parse(JSON.stringify(globalCourses));
       // make teachers and classromms in global format
@@ -61,20 +66,29 @@ export const get_changed_Courses = function(changedCourses, unChangedCourses) {
         newCourse = changedCourse;
         oldCourse = unChangedCourse;
         if (!_.isEqual("newCourse", oldCourse, "oldCourse", oldCourse)) {
-          if (newCourse.startingHour.getTime() !== oldCourse.startingHour.getTime()) {
-            tempObject.startingHour = newCourse.startingHour;
-          }
           if (newCourse.duration !== oldCourse.duration) {
             tempObject.duration = newCourse.duration;
           }
           if (newCourse.studentNumber !== oldCourse.studentNumber) {
             tempObject.studentNumber = newCourse.studentNumber;
           }
-          
+
           if (newCourse.eventDate !== oldCourse.eventDate) {
             tempObject.eventDate = newCourse.eventDate;
           }
-
+          ///////////////
+          if (
+            newCourse.startingHour == null ||
+            oldCourse.startingHour == null
+          ) {
+            tempObject.startingHour = newCourse.startingHour;
+          } else if (
+            newCourse.startingHour.getTime() !==
+            oldCourse.startingHour.getTime()
+          ) {
+            tempObject.startingHour = newCourse.startingHour;
+          }
+          /////////////////////////
           let oldCourseClassroomIdes = oldCourse.classrooms.map(c => {
             return c.id;
           });
@@ -171,7 +185,6 @@ export const getDaysBetween = function(date1, date2) {
   return dates;
 };
 export const getFormatedStrDate = function(date) {
-  
   return (
     date.getFullYear() +
     "-" +
@@ -182,7 +195,7 @@ export const getFormatedStrDate = function(date) {
 };
 export const getFormatedStrDateLocal = function(date) {
   // null coverted to date
-   if(date.getFullYear()==1970) return " "
+  if (date.getFullYear() == 1970) return " ";
   return (
     ("0" + date.getDate()).slice(-2) +
     "-" +
@@ -230,34 +243,37 @@ export const setTimeTableDays = function(selectedTimetable) {
         );
   selectedTimetable.days = days;
 };
-export const getTimetableName = function(selectedDepartment,selectedSemester,selectedTimetable ) {
+export const getTimetableName = function(
+  selectedDepartment,
+  selectedSemester,
+  selectedTimetable
+) {
   return (
-  selectedSemester.beginning +
-  " - " +
- selectedSemester.ending +
-  " " +
-  selectedSemester.semesterType +
-  " Dönemi " +
-  selectedDepartment.name +
-  " " +
-  selectedTimetable.timetableType +
-  " Programı")
-}
-export const getformatedStartingEndingHours = function(hour, duration){
-   if( hour==null) return ""
-   let ending = new Date ( hour );
-   ending.setMinutes ( hour.getMinutes() + duration );
-    return hour.toTimeString().substring(0, 5)+" - "+ending.toTimeString().substring(0, 5)
-
-}
-export const minutes_to_hours_convert= function(num)
- { 
-  var hours = Math.floor(num / 60);  
+    selectedSemester.beginning +
+    " - " +
+    selectedSemester.ending +
+    " " +
+    selectedSemester.semesterType +
+    " Dönemi " +
+    selectedDepartment.name +
+    " " +
+    selectedTimetable.timetableType +
+    " Programı"
+  );
+};
+export const getformatedStartingEndingHours = function(hour, duration) {
+  if (hour == null) return "";
+  let ending = new Date(hour);
+  ending.setMinutes(hour.getMinutes() + duration);
+  return (
+    hour.toTimeString().substring(0, 5) +
+    " - " +
+    ending.toTimeString().substring(0, 5)
+  );
+};
+export const minutes_to_hours_convert = function(num) {
+  var hours = Math.floor(num / 60);
   var minutes = num % 60;
 
-  return minutes<10?
-  hours + ":" + minutes+"0"
-  :
-  hours + ":" + minutes
-  ;         
-}
+  return minutes < 10 ? hours + ":" + minutes + "0" : hours + ":" + minutes;
+};

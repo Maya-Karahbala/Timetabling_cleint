@@ -109,13 +109,38 @@ class Schedule extends React.Component {
       // if exam timetable include all days
       tempDays
     };
+    //!
+     /*
+     this.props.updateChangedCourses({
+      //data:   JSON.parse(JSON.stringify(allChangedCourse))  ,
+      data: initilizeSchedule(data),
+      arrayName: "ChangedOpenedCoursesEvents"
+    });
+    setTimeout(() => {
+      this.componentDidMount()
+          // it seems unnessary nut after schedle generation first result cell locaated witb problems
+          this.get_next_day()
+          this.get_previous_day()
+    }, 500);
+    */
+     // !
+     
     getGlobalCourses(this.props.selectedSemester.id,this.props.departmentData.selectedDepartment.id,this.props.selectedTimetable.id)
         .then(globalCOurses=>{
           let fitness=0
           let counter=0;
           let population
           population = initilizePopulation(10, data)
-          while(counter<100&& fitness!=1){
+          sortPopulation(population,globalCOurses)
+          for (let i = 0; i < population.length; i++) {
+              
+            fitness=getFitness(population[i],globalCOurses)
+            console.log("pop ",i," ",population[i])
+            console.log("pop ",i," fitness ",getFitness(population[i],globalCOurses))
+           
+          }
+          while(counter<10&& fitness!=1){
+            console.log("evolve pop")
             counter++
              //population=_.cloneDeep(getCrossoverPopulation(population,globalCOurses))
              population=_.cloneDeep( evolvPopulation(population,globalCOurses,data))
@@ -129,6 +154,8 @@ class Schedule extends React.Component {
             }
             
           }
+          console.log("--çalıştı en iyi",   getFitness(population[0],globalCOurses))
+          getFitness(population[0],globalCOurses)
          
               this.props.updateChangedCourses({
                 //data:   JSON.parse(JSON.stringify(allChangedCourse))  ,
@@ -146,6 +173,7 @@ class Schedule extends React.Component {
           
           
         })
+        // !
     
     
   };
@@ -240,7 +268,7 @@ class Schedule extends React.Component {
           "fitness",
           getFitness(
             this.state.scheduledCourses,
-            this.state.scheduledCourses,
+          [],
             "conflicts"
           )
         );
@@ -333,8 +361,7 @@ class Schedule extends React.Component {
           // if has  semester and time
           if (
             this.getSemesterNo(course) === this.getSemesterNo(c) &&
-            isTimeConflicted(course, c) &&
-            c.eventDate === course.eventDate
+            isTimeConflicted(course, c)
           ) {
             if (
               this.state.scheduledCourses.indexOf(course) >
