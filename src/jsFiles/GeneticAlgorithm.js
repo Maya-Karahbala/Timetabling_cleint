@@ -44,16 +44,23 @@ export const initilizeSchedule = function(data) {
   });
   // set conflicts
   getFitness(newSchedule, [])
-  for (let i = 0; i < 28; i++) {
-    let sortedSchedule=sortScheduleByConflicts(newSchedule)
-  //  console.log("--çalıştı sortedSchedule 4", sortedSchedule)
-    newSchedule=repairEvent(sortedSchedule[0],sortedSchedule,data)
-   // console.log("------çalıştı repaired first event",i,
-  //  newSchedule)
-   // console.log("--------------çalıştı repaired sch fitneess------------",i,"  ", getFitness(newSchedule, []));
-   if(getFitness(newSchedule, [])==1)break
-    
-  }
+ // let counter=0
+  let sortedSchedule
+ // while (counter<3) {
+    for (let i = 0; i < newSchedule.length; i++) {
+       sortedSchedule=sortScheduleByConflicts(newSchedule)
+    //  console.log("--çalıştı sortedSchedule 4", sortedSchedule)
+      newSchedule=repairEvent(sortedSchedule[0],sortedSchedule,data)
+     // console.log("------çalıştı repaired first event",i,
+    //  newSchedule)
+     // console.log("--------------çalıştı repaired sch fitneess------------",i,"  ", getFitness(newSchedule, []));
+     if(getFitness(newSchedule, [])==1)return newSchedule;
+      
+    }
+    newSchedule=repairEvent(sortedSchedule[0].conflicts[0].conflictedCourse,sortedSchedule,data)
+ //   counter++
+ // }
+
   return newSchedule;
 };
 export const sortScheduleByConflicts= function(schedule){
@@ -85,8 +92,9 @@ for (let i = 0; i < data.classrooms.length; i++) {
     if(tempFitness> bestEvent.fitness){
       bestEvent= {fitness:tempFitness, event :_.cloneDeep( tempEvent)}
     }
-    if(tempEvent.conflicts.length==0)
-      return tempSchedule
+    if(tempEvent.conflicts.length==0)return tempSchedule
+      // && tempFitness> bestEvent.fitness)
+      
     }
     
   }
@@ -99,7 +107,9 @@ export const initilizePopulation = function(size, data) {
 
   let schedules = [];
   for (let i = 0; i < size; i++) {
-    schedules.push(initilizeSchedule(data));
+    let schedule= initilizeSchedule(data)
+    schedules.push(schedule);
+    if(getFitness(schedule,[])==1)return schedules  // if schedule with 1 fitness is found no need to complete
   }
   return schedules;
 };

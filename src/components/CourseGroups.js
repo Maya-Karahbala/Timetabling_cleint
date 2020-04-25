@@ -6,8 +6,9 @@ import Table from "react-bootstrap/Table";
 import AddCourseEvent from "./AddCourseEvent";
 import {minutes_to_hours_convert} from "../jsFiles/Functions"
 import Button from "react-bootstrap/Button";
+// table with groups of each course
 
-class CoursesPage extends Component {
+class CourseGroups extends Component {
   constructor(
     departmentId,
     semesterId,
@@ -46,12 +47,7 @@ class CoursesPage extends Component {
       <div>
         {this.state.didMount ? (
           <div>
-              <button
-          onClick={()=>{
-            this.props.changedOpenedCoursesEvents.map(c=>{
-              if(c.id==343)console.log("345 course ",c.eventDate)
-            })
-          }}> deneme</button>
+        
             <Row style={{ marginTop: "3%", width: "100%" }}>
               <Col lg={1}></Col>
               <Col lg={9}>
@@ -176,4 +172,4 @@ const mapDispatchToProps = dispatch => {
   return {};
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(CoursesPage);
+export default connect(mapStateToProps, mapDispatchToProps)(CourseGroups);

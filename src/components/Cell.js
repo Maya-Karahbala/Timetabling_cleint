@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-
+// blue cell showed in schedule
 export default class Cell extends Component {
   render() {
     let basicTeachers;

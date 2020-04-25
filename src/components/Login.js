@@ -144,7 +144,7 @@ function Login({
       selectedSemester.Timetables.filter(timetable => timetable.id == id)[0]
     );
   };
-  printfunc()
+
   return departmentData.loading ||
     departmentData.departments.size < 1 ||
     selectedTimetable == undefined ||
@@ -256,12 +256,7 @@ function Login({
       >
         Giriş Yap
       </button>
-      <button
-      onClick={()=>{
-        printfunc()
-      }}>
-      tempSemester
-    </button>
+
       <p className="forgot-password text-right">
         <a href="#">Şifremi unuttum?</a>
       </p>

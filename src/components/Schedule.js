@@ -99,7 +99,7 @@ class Schedule extends React.Component {
       classrooms: this.props.classrooms,//.slice(0,this.props.classrooms.length-2),
   
       hours: 
-      ["09","12","15"],
+      ["09","13","16"],
       //hours.slice(1,hours.length-2),
       courses: this.props.reduxChangedCourses,
       dates: 
@@ -109,7 +109,7 @@ class Schedule extends React.Component {
       // if exam timetable include all days
       tempDays
     };
-    //!
+  
      /*
      this.props.updateChangedCourses({
       //data:   JSON.parse(JSON.stringify(allChangedCourse))  ,
@@ -123,14 +123,14 @@ class Schedule extends React.Component {
           this.get_previous_day()
     }, 500);
     */
-     // !
+   
      
     getGlobalCourses(this.props.selectedSemester.id,this.props.departmentData.selectedDepartment.id,this.props.selectedTimetable.id)
         .then(globalCOurses=>{
           let fitness=0
           let counter=0;
           let population
-          population = initilizePopulation(10, data)
+          population = initilizePopulation(60, data)
           sortPopulation(population,globalCOurses)
           for (let i = 0; i < population.length; i++) {
               
@@ -139,7 +139,7 @@ class Schedule extends React.Component {
             console.log("pop ",i," fitness ",getFitness(population[i],globalCOurses))
            
           }
-          while(counter<10&& fitness!=1){
+         /* while(counter<10&& fitness!=1){
             console.log("evolve pop")
             counter++
              //population=_.cloneDeep(getCrossoverPopulation(population,globalCOurses))
@@ -148,12 +148,12 @@ class Schedule extends React.Component {
             //console.log("population",population)
             //console.log("---------------")
             for (let i = 0; i < population.length; i++) {
-              
+              console.log("evolved pop ",i," fitness ",getFitness(population[i],globalCOurses))
               fitness=getFitness(population[i],globalCOurses)
               if (fitness==1) break
             }
             
-          }
+          }*/
           console.log("--çalıştı en iyi",   getFitness(population[0],globalCOurses))
           getFitness(population[0],globalCOurses)
          
@@ -173,7 +173,7 @@ class Schedule extends React.Component {
           
           
         })
-        // !
+     
     
     
   };

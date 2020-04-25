@@ -25,11 +25,10 @@ import { filteredFetch } from "../redux";
 import UpdateEvent from "./UpdateEvent";
 import { setConflicts } from "../jsFiles/Conflicts";
 import { days } from "../jsFiles/Constants";
-//import ReactExport from 'react-export-excel';
 import ReactExport from "react-data-export";
 const ExcelFile = ReactExport.ExcelFile;
 const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
-
+//  contanis table that show all events in one table and include file downloads
 class CourseEvents extends Component {
   constructor() {
     super();

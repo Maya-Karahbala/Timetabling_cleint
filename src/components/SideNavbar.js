@@ -9,7 +9,7 @@ import SideNav, {
 import SemestersPage from "./SemestersPage";
 import Schedule from "./Schedule";
 import ConflictsPage from "./ConflictsPage";
-import CoursesPage from "./CoursesPage";
+import CourseGroups from "./CourseGroups";
 import CourseEvents from "./CourseEvents";
 
 // for dep info
@@ -100,7 +100,7 @@ class SideNavbar extends Component {
                   
                 
                     {(this.props.selectedTimetable.timetableType=="Ders")?
-                     <NavItem eventKey="CoursesPage">
+                     <NavItem eventKey="CourseGroups">
                      <NavIcon>
                        <i
                          className="fa fa-plus"
@@ -161,8 +161,8 @@ class SideNavbar extends Component {
                   <Route path="/ConflictsPage">
                     <ConflictsPage />
                   </Route>
-                  <Route path="/CoursesPage">
-                    <CoursesPage />
+                  <Route path="/CourseGroups">
+                    <CourseGroups />
                   </Route>
                   <Route path="/CourseEvents">
                     <CourseEvents />
