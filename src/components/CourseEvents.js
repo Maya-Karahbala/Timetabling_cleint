@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 import Table from "react-bootstrap/Table";
 
 import Button from "react-bootstrap/Button";
+import nextId from "react-id-generator";
 import { Alert } from "reactstrap";
 import {
   get_changed_Courses,
@@ -192,8 +193,8 @@ class CourseEvents extends Component {
                 <Table bordered hover id="table-to-xls">
                   <thead>
                     <tr style={{ backgroundColor: "rgb(221, 232, 239)" }}>
-                      {/**number of cells will be merged  */}
-                      <td colspan={this.state.tableHeaders.length}>
+                      
+                      <td colSpan={this.state.tableHeaders.length}>
                         <h5 style={{ textAlign: "center" }}>
                           {this.state.timetableName}
                         </h5>
@@ -201,7 +202,7 @@ class CourseEvents extends Component {
                     </tr>
                     <tr style={{ backgroundColor: "rgb(241, 245, 247)" }}>
                       {this.state.tableHeaders.map(element => (
-                        <th>{element}</th>
+                        <th key={nextId()}>{element}</th>
                       ))}
                     </tr>
                   </thead>
@@ -227,12 +228,15 @@ class CourseEvents extends Component {
                           </td>
                           {this.props.selectedTimetable.timetableType ==
                           "Ders" ? (
-                            <td style={{ width: "22%" }}>
+                            <td style={{ width: "22%" }}
+                            key={nextId()}>
+                                 
                               {evt.teachers
                                 .filter(teacher => teacher.role == 1)
                                 .map(t => {
                                   return (
                                     <div>
+                                   
                                       {t.title +
                                         " " +
                                         t.firstName +
@@ -246,7 +250,8 @@ class CourseEvents extends Component {
                             <td>{// if evet is exam show maincourse teachers
                               evt.mainCourseTeacher.map(t => {
                               return (
-                                <div>
+                                <div  key={nextId()}>
+                                  
                                   {t.title +
                                     " " +
                                     t.firstName +
@@ -326,7 +331,9 @@ class CourseEvents extends Component {
             <Row style={{ marginTop: "2%", width: "100%" }}>
               <Col lg={10}>
                 <ExcelFile
-                  element={<Button style={{ marginLeft: "12%" }}>indir</Button>}
+                  element={<Button style={{ marginLeft: "12%" }}>
+                    <i className="fa fa-file-excel-o" aria-hidden="true"></i>
+                    {"  "}indir</Button>}
                   filename={this.state.timetableName}
                 >
                   <ExcelSheet
@@ -344,7 +351,9 @@ class CourseEvents extends Component {
                   <ExcelFile
                     element={
                       <Button style={{ marginLeft: "2%" }}>
-                        Öğretim üylerin takvimleri
+                        <i className="fa fa-file-excel-o" aria-hidden="true"></i>
+                    {"  "}
+                        Öğretim üyelerin takvimleri
                       </Button>
                     }
                     filename={this.state.timetableName}

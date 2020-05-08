@@ -7,11 +7,12 @@ import {
   filteredFetch,
   updateSelcectedDepartment,
   fetchData,
-  storeData
+  storeData,fetchTeachers
+
 } from "../redux";
 import{printfunc} from "../jsFiles/test"
 //
-
+import { getFormatedStrDate } from "../jsFiles/Functions";
 import { Dropdown } from "primereact/dropdown";
 import "../login.css";
 import {
@@ -34,7 +35,10 @@ function Login({
   updateSelcectedDepartment,
   fetchData,
   filteredFetch,
-  storeData
+  storeData,
+  
+  fetchTeachers
+
 }) {
   const [selectedDep, setSelectedDep] = useState({ id: 1 });
   const [selectedSemester, setSelectedSemester] = useState({ id: 1 });
@@ -86,9 +90,12 @@ function Login({
           data.map(u => users.push(u));
           let validation = isValid();
           if (validation.result) {
+            setTimeTableDays(selectedSemester.Timetables.filter(timetable=>timetable.timetableType=="Ders")[0]);
             storeData({ data: selectedSemester, varName: "selectedSemester" });
-
-            setTimeTableDays(selectedTimetable);
+            if(selectedTimetable.timetable!="Ders"){
+              setTimeTableDays(selectedTimetable);
+            }
+           
             storeData({
               data: selectedTimetable,
               varName: "selectedTimetable"
@@ -106,7 +113,8 @@ function Login({
             });
 
             // stored in redux state
-            fetchData({ deparmentId: selectedDep.id, arrayName: "teachers" });
+            fetchTeachers({ deparmentId: selectedDep.id, arrayName: "teachers" ,semesterNo:selectedSemester.id})
+   
 
             fetchData({ arrayName: "classrooms" });
             fetchData({ deparmentId: selectedDep.id, arrayName: "courses" });
@@ -244,7 +252,9 @@ function Login({
             className="custom-control-input"
             id="customCheck1"
           />
-          <label className="custom-control-label" htmlFor="customCheck1">
+          <label className="custom-control-label" htmlFor="customCheck1"
+         // style={{marginBottom:"7%"}}
+         >
             Beni Unutma
           </label>
         </div>
@@ -269,7 +279,8 @@ const mapStateToProps = state => {
   return {
     departmentData: state.department,
     semestersData: state.data.Semesters,
-    semes: state.department.selectedSemester
+    semes: state.department.selectedSemester,
+
   };
 };
 
@@ -277,6 +288,8 @@ const mapDispatchToProps = dispatch => {
   return {
     fetchDepartments: () => dispatch(fetchDepartments()),
     fetchData: data => dispatch(fetchData(data)),
+    fetchTeachers: data => dispatch(fetchTeachers(data)),
+    
     filteredFetch: data => dispatch(filteredFetch(data)),
     updateSelcectedDepartment: dep => dispatch(updateSelcectedDepartment(dep)),
     storeData: data => dispatch(storeData(data))

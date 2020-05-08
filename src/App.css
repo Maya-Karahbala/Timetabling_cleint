@@ -106,7 +106,7 @@ margin-bottom: 1%;
 .grid{
   background-color: azure;
   height: 540px;
-  width: 1090px;
+  width: 1190px;
   margin-left: 2%;
 
 }
@@ -203,6 +203,42 @@ body .p-component {
   margin-top: 5%;
   margin-bottom: -20%;
 }
+/* arroe design in teacher availibiality*/
+.arrow {
+
+  display: inline-block;
+  padding: 3px;
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
+
+.down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+.redborder{
+  border: solid red;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+}
+.greenborder{
+  border: solid green;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+}
+.redborder:hover{
+  border: solid rgb(146, 2, 2);
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+}
+.greenborder:hover{
+  border: solid rgb(1, 73, 1);
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+}
+/**/
+
 /*
 .sidenav---sidenav-toggle---1KRjR .sidenav---icon-bar---u1f02 {
  

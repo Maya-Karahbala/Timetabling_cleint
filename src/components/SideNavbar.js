@@ -11,7 +11,7 @@ import Schedule from "./Schedule";
 import ConflictsPage from "./ConflictsPage";
 import CourseGroups from "./CourseGroups";
 import CourseEvents from "./CourseEvents";
-
+import TeachersAvailability from "./TeachersAvailability";
 // for dep info
 import styled from "styled-components";
 import { connect, useSelector } from "react-redux";
@@ -44,7 +44,7 @@ class SideNavbar extends Component {
   };
 
   render() {
-    console.log(this.props);
+
     return (
       <div>
         <Router>
@@ -85,7 +85,8 @@ class SideNavbar extends Component {
                   )}
                      
                   <SideNav.Nav defaultSelected="/Schedule">
-              
+                
+                    
                   <NavItem eventKey="Schedule">
                     <NavIcon>
                       <i
@@ -125,7 +126,15 @@ class SideNavbar extends Component {
                      <NavText>Sınavlar</NavText>}
                    </NavItem>
                 
-                   
+                   <NavItem eventKey="TeachersAvailability">
+                      <NavIcon>
+                        <i
+                          className="fa fa-users"
+                          style={{ fontSize: "1.75em" }}
+                        />
+                      </NavIcon>
+                      <NavText>Öğretim üyeleri</NavText>
+                    </NavItem>
                   
                     <NavItem eventKey="SemestersPage">
                       <NavIcon>
@@ -136,6 +145,9 @@ class SideNavbar extends Component {
                       </NavIcon>
                       <NavText>Dönemler</NavText>
                     </NavItem>
+                    
+
+                
 
 
 
@@ -167,6 +179,10 @@ class SideNavbar extends Component {
                   <Route path="/CourseEvents">
                     <CourseEvents />
                   </Route>
+                  <Route path="/TeachersAvailability">
+                    <TeachersAvailability />
+                  </Route>
+                
                 
                 </main>
               </React.Fragment>

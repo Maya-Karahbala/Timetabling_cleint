@@ -5,7 +5,7 @@ import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import { Row, Col } from "react-bootstrap";
 import { Card, Button, CardTitle, CardText } from "reactstrap";
-
+import {printTeachers} from "../jsFiles/Conflicts"
 import CourseDetails from "./CourseDetails";
 import { connect } from "react-redux";
 import {
@@ -23,7 +23,7 @@ import{
   get_formated_Teacher_events
   }from "../jsFiles/Reports"
 class ConflictsPage extends Component {
-  constructor(departments, changedCourses, semesterId, departmentId, courses,timetableId) {
+  constructor(departments, changedCourses, semesterId, departmentId, courses,timetableId,printTeachers) {
     super();
     this.showDepartmentConflicts = this.showDepartmentConflicts.bind(this);
     this.showConflicts = this.showConflicts.bind(this);
@@ -258,6 +258,7 @@ class ConflictsPage extends Component {
           ""
         ) : (
           <Row style={{ marginTop: "2%", width: "100%" }}>
+            {    console.log("print Teachers",printTeachers())}
             <Col lg={3} style={{ marginLeft: "5%" }}>
               <Tree
                 value={this.data}

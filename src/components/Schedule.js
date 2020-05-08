@@ -742,7 +742,7 @@ class Schedule extends React.Component {
                   cols: years.length * 2 + menuColums,
                   isResizable: true,
                   rowHeight: 41,
-                  width: 1090,
+                  width: 1190,
                   autoSize: false,
 
                   onDrag: this.onDrag,
@@ -839,14 +839,14 @@ class Schedule extends React.Component {
           )}
           <Row className="GridRow">
             <Col lg={5}></Col>
-            <Col lg={3} style={{ marginLeft: "16%",whiteSpace:"nowrap" }}>
+            <Col lg={3} style={{ marginLeft: "22%",whiteSpace:"nowrap" }}>
             <button 
             type="button"
             className="btn btn-secondary save"
             onClick={this.generate_automatik_schedle}> otomatik takvim oluştur</button>
               </Col>
             
-            <Col lg={2} style={{ marginLeft: "-5%" }}>
+            <Col lg={2} style={{ marginLeft: "-6%" }}>
               <button
                 type="button"
                 className="btn btn-secondary save"

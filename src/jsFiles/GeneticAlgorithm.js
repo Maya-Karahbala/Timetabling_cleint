@@ -70,6 +70,7 @@ export const sortScheduleByConflicts= function(schedule){
 export const repairEvent= function (event, schedule,data){
 // data could be changed
 let tempSchedule=_.cloneDeep( schedule)
+console.log("temp sch",tempSchedule)
 let tempEvent= tempSchedule.filter(evt=> evt.id==event.id)[0]
 let bestEvent= {fitness:getFitness(tempSchedule,[]), event :_.cloneDeep( tempEvent)}
 let tempFitness

@@ -15,6 +15,7 @@ export const   fetchData = (data) => {
        return fetch("/"+data.url+semesterStr+"/"+data.deparmentId)
       .then(response => response.json())
       .then(d => {
+        d.sort(function(a, b){return a.id-b.id});
          dispatch( fetchSuccess({data:d, arrayName:data.arrayName}))
          console.log("fetch bitti ",d)
          return d
@@ -25,6 +26,50 @@ export const   fetchData = (data) => {
   }
   
 }
+export const   fetchTeachers = (data) => {
+  let semesterStr=""
+  return  (dispatch) => {
+
+    dispatch(fetchRequest())
+      if(data.semesterNo!==undefined)semesterStr="/"+data.semesterNo
+      console.log("semesterStr",semesterStr)
+      console.log( "llllllllllllllllllllllllllllllllllll","/"+data.arrayName+semesterStr+"/"+data.deparmentId)
+      if(data.url=== undefined)data.url=data.arrayName
+       return fetch("/"+data.url+semesterStr+"/"+data.deparmentId)
+      .then(response => response.json())
+      .then(d => {
+        d.sort(function(a, b){return a.id-b.id});
+
+        d=d.map(teacher => {
+          teacher.Teacher_restrictions.map(teacher_restriction => {
+
+            // add eventdate as string tm make restriction structure same as event and use same functions
+            // make restriction has same structure with event ! can be improved
+            teacher_restriction.eventDate = getFormatedStrDate(
+              new Date(teacher_restriction.startingHour)
+            );
+            return teacher_restriction;
+          });
+          return teacher;
+        })
+      
+         dispatch( fetchSuccess({data:d, arrayName:data.arrayName}))
+         console.log("fetch bitti ",d)
+         return d
+      })
+      .catch(error => {
+        dispatch(fetchFailure(error.message))
+      })
+  }
+  
+}
+
+
+//
+
+//
+
+
 
 export const  fetchRequest = () => {
 
@@ -120,4 +165,13 @@ export const filteredFetch = (data) => {
 }
 
 
-
+//must be imported from functions !!problem with import
+const getFormatedStrDate = function(date) {
+  return (
+    date.getFullYear() +
+    "-" +
+    ("0" + (date.getMonth() + 1)).slice(-2) +
+    "-" +
+    ("0" + date.getDate()).slice(-2)
+  );
+};

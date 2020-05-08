@@ -328,12 +328,42 @@ export const get_formated_Teacher_events = function(teacherEvents) {
           return isTimeConflicted(evt, {
             startingHour: new Date(2001, 1, 1, hour.substring(0, 2), 0),
             duration: 60,
-            eventDate: new Date(evt.eventDate).getDay() == i ? evt.eventDate: new Date(null)
+            eventDate: new Date(evt.eventDate).getDay() == i ? evt.eventDate: null
           }) 
         }
      
       );
       tempEvent.length == 0 ? tempList.push("") : tempList.push(tempEvent[0]);
+    }
+    formated_events.push(tempList);
+  });
+  return formated_events;
+};
+// return list with n*m when n week days and m hours in day with 0,1 data value 1 if teacher 
+// avalible and 0 if not
+export const get_formated_Teacher_restrictions = function(teacherEvents) {
+  // format teacher events to convert it to excel
+  let formated_events = [];
+  let tempEvent;
+  let tempList;
+  hours.slice(1).map(hour => {
+    tempList = [];
+    tempList.push(hour)
+    // exclude holidays
+    for (let i = 1; i < days.length-1; i++) {
+
+      tempEvent = teacherEvents.filter(
+        // travers week hour by hour and check if teacher has event in that hour
+        evt =>{
+          return isTimeConflicted(evt, {
+            startingHour: new Date(2001, 1, 1, hour.substring(0, 2), 0),
+            duration: 60,
+            eventDate: new Date(evt.eventDate).getDay() == i ? evt.eventDate: null
+          }) 
+        }
+     
+      );
+      tempEvent.length == 0 ? tempList.push(false) : tempList.push(true);
     }
     formated_events.push(tempList);
   });

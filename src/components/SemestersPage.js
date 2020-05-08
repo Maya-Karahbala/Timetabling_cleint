@@ -8,7 +8,7 @@ import { connect } from "react-redux";
 import AddSemester from "./AddSemester";
 import AddTimetable from "./AddTimetable";
 import { Dropdown } from "primereact/dropdown";
-import { filteredFetch, storeData } from "../redux";
+import { filteredFetch, storeData,fetchTeachers } from "../redux";
 import { TreeTable } from "primereact/treetable";
 import { Column } from "primereact/column";
 import { string } from "prop-types";
@@ -22,7 +22,8 @@ class SemestersPage extends Component {
     departmentId,
     filteredFetch,
     storeData,
-    selectedTimetable
+    selectedTimetable,
+  
   ) {
     super();
 
@@ -63,8 +64,8 @@ class SemestersPage extends Component {
         }).then(r=>{
           console.log("xxxx filtered fetch",r)
         })
-        
-       
+
+      
         console.log(this.props.selectedSemesterRedux== this.state.selectedSemester)
         console.log(this.props.selectedSemesterRedux, this.state.selectedSemester)
         console.log(this.props.selectedTimetable== this.state.selectedTimetable)
@@ -146,6 +147,9 @@ class SemestersPage extends Component {
       selectedSemester: selectedSemester,
       selectedTimetable: selectedSemester.Timetables[0]
  }, () => {
+   // update teacher restriction (avalibality )if semester is changed
+     this.props.fetchTeachers({ deparmentId: this.props.departmentId, arrayName: "teachers" ,semesterNo:this.state.selectedSemester.id})
+     
      this.updateStore();
  });
   //  this.setState({ selectedSemester: selectedSemester });
@@ -275,14 +279,16 @@ const mapStateToProps = state => {
     departmentId: state.department.selectedDepartment.id,
     selectedSemesterRedux: state.department.selectedSemester,
     semesters: state.data.Semesters,
-    selectedTimetable: state.department.selectedTimetable
+    selectedTimetable: state.department.selectedTimetable,
+    
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     filteredFetch: data => dispatch(filteredFetch(data)),
-    storeData: data => dispatch(storeData(data))
+    storeData: data => dispatch(storeData(data)),
+    fetchTeachers: data => dispatch(fetchTeachers(data)),
   };
 };
 

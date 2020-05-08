@@ -7,16 +7,15 @@ import { MultiSelect } from "primereact/multiselect";
 import { Calendar } from "primereact/calendar";
 import { filteredFetch, updateChangedCourses } from "../redux";
 import { hours, days } from "../jsFiles/Constants";
-import {InputText} from 'primereact/inputtext';
+import { InputText } from "primereact/inputtext";
 import { getFormatedStrDate } from "../jsFiles/Functions";
-
+import nextId from "react-id-generator";
 class UpdateEvent extends Component {
   constructor() {
     super();
 
     this.state = {
-      didMount: false,
-     
+      didMount: false
     };
   }
   componentWillReceiveProps = newProps => {
@@ -37,7 +36,6 @@ class UpdateEvent extends Component {
       {
         //   teachers:teachers1,
 
-       
         selectedTeachers: selectedTeachers,
         selectedClassrooms: newProps.selectedEvent.classrooms,
 
@@ -54,9 +52,9 @@ class UpdateEvent extends Component {
           newProps.selectedEvent.eventDate == null
             ? null
             : new Date(newProps.selectedEvent.eventDate),
-        durationHours : Math.floor(newProps.selectedEvent.duration/60),
-        durationMinutes : newProps.selectedEvent.duration%60,
-        student_number:newProps.selectedEvent.studentNumber,
+        durationHours: Math.floor(newProps.selectedEvent.duration / 60),
+        durationMinutes: newProps.selectedEvent.duration % 60,
+        student_number: newProps.selectedEvent.studentNumber,
         formHeaders:
           // set headers according to timetable kind
           // may be in different languages
@@ -67,7 +65,7 @@ class UpdateEvent extends Component {
                 "Süre",
                 "Başlangıç Saati",
                 "Gün",
-                "Süresi"
+                "Süre"
               ]
             : [
                 "Gözetmen",
@@ -75,7 +73,7 @@ class UpdateEvent extends Component {
                 "Süre",
                 "Başlangıç Saati",
                 "Tarih",
-                "Süresi"
+                "Süre"
               ]
 
         //
@@ -108,13 +106,19 @@ class UpdateEvent extends Component {
   };
   changeDurationMinutes = event => {
     let { value, min, max } = event.target;
-   let  durationMinutes = Math.max(Number(min), Math.min(Number(max), Number(value)));
+    let durationMinutes = Math.max(
+      Number(min),
+      Math.min(Number(max), Number(value))
+    );
 
     this.setState({ durationMinutes });
   };
   changeDurationHours = event => {
     let { value, min, max } = event.target;
-    let durationHours = Math.max(Number(min), Math.min(Number(max), Number(value)));
+    let durationHours = Math.max(
+      Number(min),
+      Math.min(Number(max), Number(value))
+    );
 
     this.setState({ durationHours });
   };
@@ -135,13 +139,16 @@ class UpdateEvent extends Component {
 
     let temp_changedEvents = this.props.changedOpenedCoursesEvents.map(evt => {
       if (evt.id == this.props.selectedEvent.id) {
-        evt.duration = this.state.durationHours*60+this.state.durationMinutes
+        evt.duration =
+          this.state.durationHours * 60 + this.state.durationMinutes;
         evt.classrooms = this.state.selectedClassrooms;
         evt.teachers = this.state.selectedTeachers;
-        evt.studentNumber= this.state.student_number
-       
+        evt.studentNumber = this.state.student_number;
+
         evt.startingHour =
-          this.state.selectedStartingHours == "" ? null : new Date(2001, 1, 1, this.state.selectedStartingHours, 0)
+          this.state.selectedStartingHours == ""
+            ? null
+            : new Date(2001, 1, 1, this.state.selectedStartingHours, 0);
         // evt.eventDate=
         if (this.state.selectedDate != null) {
           evt.eventDate =
@@ -169,17 +176,32 @@ class UpdateEvent extends Component {
         {this.state.didMount ? (
           <Modal isOpen={this.props.addCourseEventIsOpen}>
             <ModalHeader>
-              {" "}
-              {
-                this.props.selectedEvent.Opened_course.Department_course.Course
-                  .name
-              }{" "}
+              <span>
+                {" "}
+                {this.props.selectedEvent.Opened_course.Department_course.Course
+                  .name + "      "}
+                {this.props.selectedTimetable.timetableType == "Ders"
+                  ? ""
+                  : this.props.selectedEvent.mainCourseTeacher.map(t => {
+                      return (
+                        <h6>
+                          {"Öğretim üyesi: " +
+                            t.title +
+                            " " +
+                            t.firstName +
+                            " " +
+                            t.lastName}
+                        </h6>
+                      );
+                    })}
+              </span>
             </ModalHeader>
             <ModalBody>
               <Form.Group controlId="exampleForm.ControlInput1">
                 <Form.Label> {this.state.formHeaders[0]}</Form.Label>
                 <div>
                   <MultiSelect
+                    key={nextId()}
                     style={{ width: "100%" }}
                     optionLabel="fullName"
                     value={this.state.selectedTeachers}
@@ -196,6 +218,7 @@ class UpdateEvent extends Component {
                 <Form.Label>{this.state.formHeaders[1]}</Form.Label>
                 <div>
                   <MultiSelect
+                    key={nextId()}
                     style={{ width: "100%" }}
                     optionLabel="code"
                     value={this.state.selectedClassrooms}
@@ -207,33 +230,54 @@ class UpdateEvent extends Component {
                   />
                 </div>
               </Form.Group>
-           
+
               <Form.Group controlId="exampleForm.ControlSelect1">
-                <Form.Label>{this.state.formHeaders[3]}</Form.Label>
+                <p>{this.state.formHeaders[3]}
+                
+                {
+                    this.props.selectedTimetable.timetableType == "Ders"?
+                    <span style={{float :"right"}}>
+                    {"Süre: "+this.state.durationHours+" : "+this.state.durationMinutes}
+                </span>
+                  
+                :""
+                }
+                </p>
                 <Form.Control
                   as="select"
                   style={{ width: "100%" }}
                   onChange={e => {
                     this.setState({
                       selectedStartingHours: e.target.value
-                   
                     });
-                 
                   }}
                   value={this.state.selectedStartingHours}
                 >
                   {// prevent event from be out of schedule bounda
-                    hours.slice(0,hours.length-( this.state.durationHours+ Math.ceil(this.state.durationMinutes/60)-1) ).map(item => {
-                    return (
-                      <option value={Number(item.substring(0, 2))} key={item}>
-                        {item}
-                      </option>
-                    );
-                  })}
+                  hours
+                    .slice(
+                      0,
+                      hours.length -
+                        (this.state.durationHours +
+                          Math.ceil(this.state.durationMinutes / 60) -
+                          1)
+                    )
+                    .map(item => {
+                      return (
+                        <option value={Number(item.substring(0, 2))} key={item}>
+                          {item}
+                        </option>
+                      );
+                    })}
                 </Form.Control>
               </Form.Group>
-              <Form.Group controlId="exampleForm.ControlSelect1">
-                <Form.Label>{this.state.formHeaders[5]}</Form.Label>
+              {
+                this.props.selectedTimetable.timetableType == "Ders"?
+                "":
+                <Form.Group controlId="exampleForm.ControlSelect1">
+                <Form.Label>{this.state.formHeaders[5]}
+             
+                </Form.Label>
                 <div>
                   <input
                     value={this.state.durationHours}
@@ -241,7 +285,6 @@ class UpdateEvent extends Component {
                     type="number"
                     min="1"
                     max="5"
-                    disabled={this.props.selectedTimetable.timetableType == "Ders"}
                   />
                   -
                   <input
@@ -250,10 +293,11 @@ class UpdateEvent extends Component {
                     type="number"
                     min="1"
                     max="59"
-                    disabled={this.props.selectedTimetable.timetableType == "Ders"}
                   />
                 </div>
               </Form.Group>
+              }
+         
               {this.props.selectedTimetable.timetableType == "Ders" ? (
                 <Form.Group controlId="exampleForm.ControlSelect1">
                   <Form.Label>{this.state.formHeaders[4]}</Form.Label>
@@ -316,15 +360,20 @@ class UpdateEvent extends Component {
                       minDate={new Date(this.props.selectedTimetable.beginning)}
                       maxDate={new Date(this.props.selectedTimetable.ending)}
                     ></Calendar>
-
                   </div>
                 </Form.Group>
-              )
-              }
-               <Form.Group controlId="exampleForm.ControlInput1">
+              )}
+              <Form.Group controlId="exampleForm.ControlInput1">
                 <Form.Label>Kontenjan</Form.Label>
                 <div>
-                <InputText type="text" keyfilter="pint" value={this.state.student_number} onChange={(e) => this.setState({student_number: e.target.value})} />
+                  <InputText
+                    type="text"
+                    keyfilter="pint"
+                    value={this.state.student_number}
+                    onChange={e =>
+                      this.setState({ student_number: e.target.value })
+                    }
+                  />
                 </div>
               </Form.Group>
             </ModalBody>
@@ -337,16 +386,19 @@ class UpdateEvent extends Component {
                 Kaydet
               </Button>
               <Button onClick={this.props.close_details}>Kapat</Button>
-              {this.props.selectedEvent.conflicts != undefined &&
-              this.props.selectedEvent.conflicts.length != 0 ? (
-                <pre>
-                  <div>Çakışmalar:</div>
-                  <div style={{ color: "red" }}>
-                    {this.props.selectedEvent.conflicts.map(conflict =>
-                      conflict.type === "classroom" ? (
-                        <p>
-                          {conflict.conflictedCourse.Opened_course
-                            .Department_course.Course.name +
+            </ModalFooter>
+            {this.props.selectedEvent.conflicts != undefined &&
+            this.props.selectedEvent.conflicts.length != 0 ? (
+              <div style={{ marginLeft: "3%" }}>
+                <div>Çakışmalar:</div>
+                <div style={{ color: "red" }}>
+                  {this.props.selectedEvent.conflicts.map(conflict => {
+                    if (conflict.type === "classroom") {
+                      return (
+                        <div>
+                          {"* " +
+                            conflict.conflictedCourse.Opened_course
+                              .Department_course.Course.name +
                             "(" +
                             conflict.conflictedCourse.Opened_course
                               .Department_course.Course.code +
@@ -354,27 +406,61 @@ class UpdateEvent extends Component {
                             conflict.conflictedCourse.id +
                             ")" +
                             " dersi ile sınıf çakışması var"}
-                        </p>
-                      ) : (
-                        <p>
-                          {conflict.conflictedCourse.Opened_course
-                            .Department_course.Course.name +
+                        </div>
+                      );
+                    } else if (conflict.type === "teacher") {
+                      return (
+                        <div>
+                          {"* " +
+                            conflict.conflictedCourse.Opened_course
+                              .Department_course.Course.name +
                             "(" +
                             conflict.conflictedCourse.Opened_course
                               .Department_course.Course.code +
                             "," +
                             conflict.conflictedCourse.id +
                             ")" +
-                            " dersi ile Öğretmen çakışması var"}
+                            " dersi ile öğretmen çakışması var"}
+                        </div>
+                      );
+                    
+                    } else if   ( conflict.type .startsWith("unsuitable classrom")){
+                      return (
+                        <div>
+                          {(conflict.type === "unsuitable classrom")?
+                           "* sınıf özellikleri uygun değil":
+                            "* sınıf kapasitesi uygun değil"}
+                        </div>
+                      );
+                    } 
+                    
+                    
+                    else if (conflict.type === "teacher_restriction") {
+                      return (
+                        <p style={{ textAlign: "left" }}>
+                          {this.props.teachers
+                            .filter(
+                              teacher =>
+                                teacher.id ==
+                                conflict.conflictedRestriction.teacherId
+                            )
+                            .map(teacher => (
+                              <div>
+                                {"* " +
+                                  " " +
+                                  teacher.fullName +
+                                  " Öğretim üyesinin müsaitlik durumuna uygun değil"}
+                              </div>
+                            ))}
                         </p>
-                      )
-                    )}
-                  </div>
-                </pre>
-              ) : (
-                ""
-              )}
-            </ModalFooter>
+                      );
+                    }
+                  })}
+                </div>
+              </div>
+            ) : (
+              ""
+            )}
           </Modal>
         ) : (
           ""

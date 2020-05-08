@@ -11,6 +11,7 @@ import SideNavbar from "./components/SideNavbar";
 
 import SemestersPage from "./components/SemestersPage"
 import CourseGroups from "./components/CourseGroups"
+import TeachersAvailability from "./components/TeachersAvailability"
 
 // for icons
 import 'font-awesome/css/font-awesome.min.css';
@@ -48,6 +49,9 @@ export default class App extends Component {
               <CourseGroups />
             </Route>
             <Route path="/Test">
+              <Test />
+            </Route>
+            <Route path="/TeachersAvailability">
               <Test />
             </Route>
           
