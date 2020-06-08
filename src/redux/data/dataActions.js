@@ -110,8 +110,6 @@ export const filteredFetch = (data) => {
 
     dispatch(fetchRequest())
       if(data.selectedSemester.id!==undefined)semesterStr="/"+data.selectedSemester.id
-      console.log("semesterStr",semesterStr)
-      console.log( "llllllllllllllllllllllllllllllllllll","/"+data.arrayName+semesterStr+"/"+data.deparmentId)
       if(data.url=== undefined)data.url=data.arrayName
       return  fetch("/"+data.url+semesterStr+"/"+data.deparmentId)
       .then(response => response.json())
@@ -120,10 +118,15 @@ export const filteredFetch = (data) => {
           // for exams get maincourses and store basic teachers info in events
           let mainCourses
           if(data.selectedTimetable.timetableType!="Ders"){
-          let CourseTimetable= data.selectedSemester.Timetables.filter(timetable => timetable.timetableType == "Ders")[0]
+          var CourseTimetable= data.selectedSemester.Timetables.filter(timetable => timetable.timetableType == "Ders")[0]
            mainCourses= copyData.filter(evt=>
             evt.timetableId== CourseTimetable.id
           )
+          ////
+          CourseTimetable.mainCourses=d.filter(evt=>
+            evt.timetableId== CourseTimetable.id
+          )
+          
           }
          d.map(evt=>{
            // update structure of events come from database to meet program requirements
@@ -147,6 +150,9 @@ export const filteredFetch = (data) => {
                  evt.mainCourseTeacher= course.Event_teachers.map(ev=> ev.Department_Teacher.Teacher).filter(t=> t.role==1)
                 }
          })
+         // store corse timetable courses to show them in teachers scheduled section
+      
+        
          dispatch( 
              {
               type: Types.FILTERD_FETCH,

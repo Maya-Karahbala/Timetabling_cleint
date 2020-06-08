@@ -77,17 +77,21 @@ export const get_changed_Courses = function(changedCourses, unChangedCourses) {
             tempObject.eventDate = newCourse.eventDate;
           }
           ///////////////
-          if (
-            newCourse.startingHour == null ||
-            oldCourse.startingHour == null
-          ) {
-            tempObject.startingHour = newCourse.startingHour;
-          } else if (
-            newCourse.startingHour.getTime() !==
-            oldCourse.startingHour.getTime()
-          ) {
-            tempObject.startingHour = newCourse.startingHour;
+          if( !(oldCourse.startingHour == null&&newCourse.startingHour == null)){
+            if (
+              newCourse.startingHour == null ||
+              oldCourse.startingHour == null
+             
+            ) {
+              tempObject.startingHour = newCourse.startingHour;
+            } else if (
+              newCourse.startingHour.getTime() !==
+              oldCourse.startingHour.getTime()
+            ) {
+              tempObject.startingHour = newCourse.startingHour;
+            }
           }
+          
           /////////////////////////
           let oldCourseClassroomIdes = oldCourse.classrooms.map(c => {
             return c.id;
@@ -277,3 +281,41 @@ export const minutes_to_hours_convert = function(num) {
 
   return minutes < 10 ? hours + ":" + minutes + "0" : hours + ":" + minutes;
 };
+
+//--------------order functions---------------------------//
+export const orderByDateAndTime= function (evt1, evt2) {
+
+    // equal items sort equally
+    if (evt1.eventDate == evt2.eventDate && evt1.startingHour == evt2.eventDate) {
+      return 0;
+  }
+  // nulls sort after anything else
+  else if (evt1.eventDate  === null ||evt1.startingHour  === null ) {
+      return 1;
+  }
+  else if (evt2.eventDate  === null||evt2.startingHour  === null ) {
+      return -1;
+  }
+  // otherwise, if we're ascending, lowest sorts first
+  /*else if (ascending) {
+      return evt1 < evt2 ? -1 : 1;
+  }*/
+  // if descending, highest sorts first
+  else { 
+      	// Sort by votes
+	// If the first item has a higher number, move it down
+	// If the first item has a lower number, move it up
+	if (evt1.eventDate < evt2.eventDate) return -1;
+	if (evt1.eventDate > evt2.eventDate) return 1;
+
+	// If the votes number is the same between both items, sort alphabetically
+	// If the first item comes first in the alphabet, move it up
+	// Otherwise move it down
+	if (evt1.startingHour.getTime() > evt2.startingHour.getTime()) return 1;
+	if (evt1.startingHour.getTime() < evt2.startingHour.getTime()) return -1;
+      
+  }
+
+
+
+}

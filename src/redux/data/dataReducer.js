@@ -43,7 +43,7 @@ const teacherReducer = (state = initialState, action) => {
            // [action.payload.arrayName+"Exams"]: action.payload.data.filter(evt=> evt.timetableId!=action.payload.timetableId),
             error: ""
           };
-      
+    
     default:
       return state;
   }

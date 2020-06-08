@@ -1,16 +1,23 @@
 import React, { Component } from "react";
 import {
+  getFormatedStrDateLocal,
 getformatedStartingEndingHours
 } from "../jsFiles/Functions";
+
+
+
+import { days } from "../jsFiles/Constants";
 export default class CourseDetails extends Component {
 getClassroomColor=()=>{
   if(this.props.conflictType===undefined) return{}
- if(this.props.conflictType==="classroom") return {color: "red"}
+ if(this.props.conflictType==="classroom"
+ || this.props.conflictType.startsWith(  "unsuitable classrom")) return {color: "red"}
  return{}
 }
 getTeacherColor=()=>{
   if(this.props.conflictType===undefined) return{}
- if(this.props.conflictType==="teacher") return {color: "red"}
+ if(this.props.conflictType==="teacher" ||this.props.conflictType==="teacher_restriction"
+ ) return {color: "red"}
  return{}
 }
  ClassroomColor;
@@ -25,10 +32,12 @@ getTeacherColor=()=>{
         <div>
                <pre>
             Ders Adı{"           :"} 
-            {
-              this.props.selectedCourse.Opened_course.Department_course.Course
-                .name+" ("+this.props.selectedCourse.eventType+")"
-            }
+           
+            {this.props.timetableType== "Ders" ?
+            this.props.selectedCourse.Opened_course.Department_course.Course
+            .name+" ("+this.props.selectedCourse.eventType+")":
+            this.props.selectedCourse.Opened_course.Department_course.Course
+            .name}
           </pre>
           {this.props.selectedCourse.teachers== undefined ?
             "":
@@ -62,8 +71,22 @@ getTeacherColor=()=>{
           {/*<pre>Ders günü          :{new Date(this.props.selectedCourse.eventDate)} </pre> */}
           {this.props.selectedCourse.startingHour== null ?
           "":
-          <pre>Ders saati         :{getformatedStartingEndingHours(this.props.selectedCourse.startingHour,this.props.selectedCourse.duration)} </pre> 
+          <pre>Ders saati         :{
+            this.props.selectedCourse.eventDate == null
+                              ? ""
+                              : 
+            getformatedStartingEndingHours(this.props.selectedCourse.startingHour,this.props.selectedCourse.duration)} </pre> 
           }
+        
+            <pre>
+            Ders tarihi {"       :"} 
+            {this.props.timetableType!= "Ders" ?
+            days[new Date(this.props.selectedCourse.eventDate).getDay()]+" "+getFormatedStrDateLocal(new Date( this.props.selectedCourse.eventDate)):
+            days[new Date(this.props.selectedCourse.eventDate).getDay()]
+            
+        }
+          </pre>
+          
          
         </div>
     );

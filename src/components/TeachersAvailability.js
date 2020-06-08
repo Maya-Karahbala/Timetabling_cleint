@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import Table from "react-bootstrap/Table";
 import { Row, Col, Tab } from "react-bootstrap";
 import nextId from "react-id-generator";
+import {Growl} from 'primereact/growl';
 import {
   get_formated_Teacher_events,
   get_formated_Teacher_restrictions
@@ -14,6 +15,35 @@ import { days, hours } from "../jsFiles/Constants";
 import { object } from "prop-types";
 import { compose } from "redux";
 import { fetchTeachers } from "../redux";
+import {SelectButton} from 'primereact/selectbutton';
+import {
+
+  getGlobalCourses,
+
+} from "../jsFiles/Functions";
+
+import {
+  get_AllEvents_ExcelList,
+  get_Teacher_Excel_list,
+  get_Teacher_events
+} from "../jsFiles/Reports";
+import ReactExport from "react-data-export";
+import TeacherEvents from "./TeacherEvents";
+const ExcelFile = ReactExport.ExcelFile;
+const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+
+
+  const style = {
+    control: (base, state) => ({
+      ...base,
+      border: state.isFocused ? 0 : 0,
+      // This line disable the blue border
+      boxShadow: state.isFocused ? 0 : 0,
+      "&:hover": {
+        border: state.isFocused ? 0 : 0
+      }
+    })
+  };
 class TeachersAvailability extends Component {
   constructor() {
     super();
@@ -22,8 +52,18 @@ class TeachersAvailability extends Component {
 
     };
   }
+  componentWillReceiveProps = () => {
+    this.componentDidMount()
+  }
   componentDidMount = () => {
+    getGlobalCourses(
+      this.props.selectedSemester.id,
+      this.props.selectedDepartment.id,
+      this.props.selectedSemester.Timetables.filter(timetable=>timetable.timetableType=="Ders")[0].id
+    ).then(globalCourses => {
     this.setState({
+      globalCourses:globalCourses,
+      tableType:"availability",
       didMount: true,
       teachersRestrictions: this.props.teachers.map(teacher => {
         return {
@@ -34,6 +74,7 @@ class TeachersAvailability extends Component {
         };
       })
     });
+  })
   };
   updateTeacherRestrictions(teacher, restrictions) {
     this.setState(prevState => {
@@ -64,7 +105,7 @@ class TeachersAvailability extends Component {
       restrictionsList
     );
   }
-  getTeacherTables = (teacher, restrictionsList) => {
+  getTeacherAvailabilityTable = (teacher, restrictionsList) => {
     return (
       <Table>
         <thead>
@@ -115,7 +156,7 @@ class TeachersAvailability extends Component {
                 <td
                   key={nextId()}
                   style={{
-                    backgroundColor: restrictions[i] == true ? "red" : "green"
+                    backgroundColor: restrictions[i] == true ? "rgb(234, 45, 45)" : "#70c570"
                   }}
                   onClick={e => {
 
@@ -254,6 +295,7 @@ class TeachersAvailability extends Component {
   };
  
   send_restrictions_to_server = data => {
+    console.log("data",data)
     if(data.deletedIdes.length!=0|| data.data.length!=0){
       return fetch("/updateTeacherRestrictions", {
         method: "post",
@@ -266,13 +308,29 @@ class TeachersAvailability extends Component {
             console.log("this.props",this.props)
             this.setState({})
           })
-          console.log("degişikliker kaydedildi");
+        console.log("teachers",this.props.teachers)
+          this.setState()
+          this.growl.show({severity: 'success', summary: '', detail: 'değişiklikler kaydedildi'});
         }
       });
     }
    
   };
-
+//---------------------Teachers weekly course timetable methods------------------
+getTeachersEvents = () => {
+  let result = [];
+  this.props.teachers.map(teacher => {
+    result.push(
+      ...get_Teacher_Excel_list(
+        teacher,
+        this.props.changedOpenedCoursesEvents,
+        this.state.globalCourses
+      )
+    );
+  });
+ // console.log("---------result------------", result);
+  return result;
+};
   render() {
     console.log(this.state);
 
@@ -282,10 +340,12 @@ class TeachersAvailability extends Component {
           ""
         ) : (
           <div>
-            {console.log("getTeachersRestrictions",
-            this.getTeachersRestrictions(this.state.teachersRestrictions)
-            ,"all",
-          this.state.teachersRestrictions)
+            {console.log("getTeachersEvents",
+             get_formated_Teacher_events( get_Teacher_events(
+              this.props.teachers[0],
+              this.props.changedOpenedCoursesEvents,
+              this.state.globalCourses
+            )))
             /*  console.log("con",
               this.getTeacherRestrictions(
                 this.state.teachersRestrictions[0].teacher,
@@ -294,34 +354,37 @@ class TeachersAvailability extends Component {
               )*/}
             <Row
               style={{
-                marginTop: this.state.alertVisble ? "0%" : "3%",
+                marginTop:"2%",
                 width: "100%"
               }}
             >
               <Col lg={1}></Col>
               <Col lg={11}>
-                <Button
-                  onClick={() => {
-                    console.log("buttton",
-                    this.getTeachersRestrictions(this.state.teachersRestrictions)
-            )
-                    this.send_restrictions_to_server(
-                      this.getTeachersRestrictions(this.state.teachersRestrictions)
-                    );
-                  }}
-                >
-                  Kaydet
-                </Button>
+              <Growl ref={(el) => this.growl = el} />
+           
                 <Table
                   bordered
-                  hover
+                  
                   id="table-to-xls"
                   style={{ textAlign: "center" }}
                 >
                   <thead>
                     <tr>
                       <th>Öğretim üyesi</th>
-                      <th>Uygunluk durumu</th>
+                      <th>
+                       
+                        <SelectButton 
+                        className="selectionbtn"
+                        value={this.state.tableType} 
+                        options={
+                          [
+                            {label: 'Müsaitlik Durumu', value: 'availability'},
+                            {label: 'Ders programı', value: 'courses'},
+   
+                        ]
+                        } 
+                        onChange={(e) => this.setState({tableType: e.value})}></SelectButton>
+                        </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -335,12 +398,68 @@ class TeachersAvailability extends Component {
                               {t.title + " " + t.firstName + " " + t.lastName}
                             </div>
                           </td>
-                          <td>{this.getTeacherTables(t, restrictions)}</td>
+                          <td>{
+                            this.state.tableType=="availability"?
+                            this.getTeacherAvailabilityTable(t, restrictions):
+                            <TeacherEvents 
+                             teacherEvents={
+                              get_formated_Teacher_events( get_Teacher_events(
+                                t,
+                                this.props.changedOpenedCoursesEvents,
+                                this.state.globalCourses
+                              ))
+                             }
+                             />
+                            }</td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </Table>
+              </Col>
+            </Row>
+            <Row>
+              <Col lg={10}></Col>
+              <Col lg={2}>
+                   
+              {this.props.selectedTimetable.timetableType == "Ders" ? (
+                  <ExcelFile
+                    element={
+                
+                      <Button style={{ marginLeft: "2%", marginRight: "3%"  }}>
+                        <i className="fa fa-file-excel-o" aria-hidden="true"></i>
+                    {"  "}
+                        indir
+                      </Button>
+                    }
+                    filename={this.state.timetableName}
+                  >
+                    <ExcelSheet
+                      dataSet={
+                        this.getTeachersEvents()
+
+                        // this.get_Teacher_Excel_list()
+                      }
+                      name="Organization"
+                    />
+                  </ExcelFile>
+                ) : (
+                  " "
+                )}
+                  <Button
+                  
+                  onClick={() => {
+                    console.log("buttton",
+                    this.getTeachersRestrictions(this.state.teachersRestrictions)
+            )
+                    this.send_restrictions_to_server(
+                      this.getTeachersRestrictions(this.state.teachersRestrictions)
+                    );
+                    
+                  }}
+                >
+                  Kaydet
+                </Button>
               </Col>
             </Row>
           </div>
@@ -351,6 +470,18 @@ class TeachersAvailability extends Component {
 }
 const mapStateToProps = state => {
   return {
+    changedOpenedCoursesEvents: 
+    state.department.selectedTimetable.timetableType=="Ders"?
+    state.data.ChangedOpenedCoursesEvents.map(evt=>{
+      evt.startingHour= evt.startingHour== null? null: new Date(evt.startingHour)
+      return evt
+    })
+    :
+    state.department.selectedSemester.Timetables.filter(timetable=>timetable.timetableType=="Ders")[0].mainCourses.map(evt=>{
+      evt.startingHour= evt.startingHour== null? null: new Date(evt.startingHour)
+      return evt
+    })
+    ,
     selectedDepartment: state.department.selectedDepartment,
     selectedSemester: state.department.selectedSemester,
     selectedTimetable: 
@@ -380,37 +511,3 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(TeachersAvailability);
-/**
- *        console.log(
-          "compare startingHour",
-          (
-
-            restiction.startingHour.valueOf() ==
-              restriction2.startingHour.valueOf() 
-
-          )
-        );
-        console.log(
-          "compare duration",
-          (
-            restiction.duration == restriction2.duration 
-     
-          )
-        );
-        console.log(
-          "compare semesterId",
-         (
-           
-            restiction.semesterId == restriction2.semesterId 
-           
-          )
-        );
-        console.log(
-          "compare teacherId",
-          (
-       
-            restiction.teacherId == restriction2.teacherId
-          )
-        );
-
- */

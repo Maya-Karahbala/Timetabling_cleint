@@ -25,10 +25,11 @@ import {
 import {
   setTimeTableDays,
 } from "../jsFiles/Functions";
+
 // equal to component did mount in class component work only one if [] added to last part
 function Login({
   // redux inf and methods
-  departmentData,
+  departments,
   semestersData,
   semes,
   fetchDepartments,
@@ -45,15 +46,14 @@ function Login({
   const [selectedTimetable, setSelectedTimetable] = useState(undefined);
   const [mail, setMail] = useState("ahmet.ak@gmail.com");
   const [password, setPassword] = useState("ahmet");
-
+  localStorage.clear();
   var users = [];
 
   useEffect(() => {
-    fetchDepartments().then(deps => {
-      let tempDep = deps.values().next().value;
-      setSelectedDep(tempDep);
-    });
-
+    
+    fetchData({ arrayName: "departments" }).then(deps => {
+      setSelectedDep(deps[0]);
+    })
     fetchData({ arrayName: "Semesters" }).then(semesters => {
       let lastSemester = semesters[semesters.length - 1];
       setSelectedSemester(lastSemester);
@@ -71,19 +71,10 @@ function Login({
     setPassword(event.target.value);
   };
 
-  const depsForDropDown = () => {
-    let deps = [];
-    for (var [key, value] of departmentData.departments) {
-      deps.push(value);
-    }
-
-    return deps.map(dep => {
-      return { label: dep.name, value: dep.id };
-    });
-  };
-
+ 
   const fetchUsers = async () => {
     if (selectedDep.id !== undefined) {
+      //!only enterd user should be returned if founde + users password must be hased or encrypted
       await fetch("/users/" + selectedDep.id)
         .then(responce => responce.json())
         .then(data => {
@@ -91,7 +82,7 @@ function Login({
           let validation = isValid();
           if (validation.result) {
             setTimeTableDays(selectedSemester.Timetables.filter(timetable=>timetable.timetableType=="Ders")[0]);
-            storeData({ data: selectedSemester, varName: "selectedSemester" });
+            
             if(selectedTimetable.timetable!="Ders"){
               setTimeTableDays(selectedTimetable);
             }
@@ -105,26 +96,31 @@ function Login({
               user: validation.user
             });
 
-            filteredFetch({
+            let result1=filteredFetch({
               deparmentId: selectedDep.id,
               selectedSemester: selectedSemester,
               arrayName: "openedCoursesEvents",
               selectedTimetable: selectedTimetable
             });
+            //  some semesters features is set in filteredFetch son order is important
+            // main courses is stored if exam timetable is selected
+            storeData({ data: selectedSemester, varName: "selectedSemester" });
 
             // stored in redux state
-            fetchTeachers({ deparmentId: selectedDep.id, arrayName: "teachers" ,semesterNo:selectedSemester.id})
+            let result2=fetchTeachers({ deparmentId: selectedDep.id, arrayName: "teachers" ,semesterNo:selectedSemester.id})
    
 
-            fetchData({ arrayName: "classrooms" });
-            fetchData({ deparmentId: selectedDep.id, arrayName: "courses" });
-            setSelectedDep(departmentData.departments.entries().next().value);
+            let result3=fetchData({ arrayName: "classrooms" });
+            let result4=fetchData({ deparmentId: selectedDep.id, arrayName: "courses" });
+            setSelectedDep(departments[0]);
 
             //fetchData({  arrayName:"Semesters"})
 
-            var linkToClick = document.getElementById("something");
-
-            linkToClick.click();
+            var linkToClick = document.getElementById("SideNavbar");
+            Promise.all([result1, result2,result3,result4]).then(()=>{
+              linkToClick.click();
+            })  
+            
           }
         })
         .catch(err => console.log(err));
@@ -140,7 +136,10 @@ function Login({
   };
 
   const changeDepartment = id => {
-    setSelectedDep(departmentData.departments.get(id));
+    setSelectedDep(
+      departments.filter(dep=>dep.id==id)[0]
+    
+      );
   };
   const changeSemester = id => {
     let tempSemester = semestersData.filter(semester1 => semester1.id == id)[0];
@@ -153,18 +152,17 @@ function Login({
     );
   };
 
-  return departmentData.loading ||
-    departmentData.departments.size < 1 ||
+  return departments == undefined ||
+  departments.length==0||
+    
     selectedTimetable == undefined ||
     semestersData == undefined ? (
     <h1>
       <i className="fa fa-refresh fa-spin fa-3x fa-fw"></i>
     </h1>
-  ) : departmentData.error ? (
-    <h2>{departmentData.error}</h2>
-  ) : (
+  )  : (
     <div>
-      <Link id="something" to={"/SideNavbar"}>
+      <Link id="SideNavbar" to={"/SideNavbar"}>
         {" "}
       </Link>
       <h3>Giriş Yap</h3>
@@ -194,7 +192,9 @@ function Login({
         <div>
           <Dropdown
             style={{ width: "100%" }}
-            options={depsForDropDown()}
+            options={departments.map(dep => {
+              return { label: dep.name, value: dep.id };
+            })}
             value={selectedDep.id}
             onChange={e => {
               changeDepartment(e.value);
@@ -277,7 +277,7 @@ function Login({
 
 const mapStateToProps = state => {
   return {
-    departmentData: state.department,
+    departments: state.data.departments,
     semestersData: state.data.Semesters,
     semes: state.department.selectedSemester,
 

@@ -42,35 +42,34 @@ export const initilizeSchedule = function(data) {
     course.eventDate =
       data.dates[Math.floor(Math.random() * data.dates.length)];
   });
+
+return newSchedule
+};
+export const repairSchedule= function(newSchedule,data){
   // set conflicts
   getFitness(newSchedule, [])
- // let counter=0
   let sortedSchedule
- // while (counter<3) {
-    for (let i = 0; i < newSchedule.length; i++) {
-       sortedSchedule=sortScheduleByConflicts(newSchedule)
-    //  console.log("--çalıştı sortedSchedule 4", sortedSchedule)
-      newSchedule=repairEvent(sortedSchedule[0],sortedSchedule,data)
-     // console.log("------çalıştı repaired first event",i,
-    //  newSchedule)
-     // console.log("--------------çalıştı repaired sch fitneess------------",i,"  ", getFitness(newSchedule, []));
-     if(getFitness(newSchedule, [])==1)return newSchedule;
-      
-    }
-    newSchedule=repairEvent(sortedSchedule[0].conflicts[0].conflictedCourse,sortedSchedule,data)
- //   counter++
- // }
-
-  return newSchedule;
-};
+  for (let i = 0; i < newSchedule.length; i++) {
+    sortedSchedule=sortScheduleByConflicts(newSchedule)
+   console.log("--çalıştı sortedSchedule 4", sortedSchedule)
+   newSchedule=repairEvent(sortedSchedule[0],sortedSchedule,data)
+  // console.log("------çalıştı repaired first event",i,
+ //  newSchedule)
+  // console.log("--------------çalıştı repaired sch fitneess------------",i,"  ", getFitness(newSchedule, []));
+  if(getFitness(newSchedule, [])==1)return newSchedule;
+   
+ }
+ return newSchedule;
+}
 export const sortScheduleByConflicts= function(schedule){
    schedule = _.cloneDeep( schedule)
    return schedule.sort((evt1, evt2) =>  evt2.conflicts.length-evt1.conflicts.length );
 }
 export const repairEvent= function (event, schedule,data){
+
 // data could be changed
 let tempSchedule=_.cloneDeep( schedule)
-console.log("temp sch",tempSchedule)
+//console.log("temp sch",event,tempSchedule)
 let tempEvent= tempSchedule.filter(evt=> evt.id==event.id)[0]
 let bestEvent= {fitness:getFitness(tempSchedule,[]), event :_.cloneDeep( tempEvent)}
 let tempFitness
@@ -82,6 +81,7 @@ for (let i = 0; i < data.classrooms.length; i++) {
       tempEvent.classrooms = [
         data.classrooms[i]
       ];
+      let tempDate=new Date(data.dates[j])
       tempEvent.startingHour = 
       new Date(2001, 1, 1,
       data.hours[
@@ -143,7 +143,7 @@ export const getCrossoverSchedule = function(schedule1, schedule2) {
   // return schedule with mixed classes from both schedules
   let crossoverSchedule = [];
   for (let i = 0; i < schedule1.length; i++) {
-    if (Math.random() > 0.5) {
+    if (Math.random() > 0.3) {
       crossoverSchedule.push(schedule1[i]);
     } else crossoverSchedule.push(schedule2[i]);
   }
@@ -178,13 +178,19 @@ export const getCrossoverPopulation = function(population1, globalCourses) {
 };
 
 export const evolvPopulation = function(population, globalCourses, data) {
-  return getMutationPopulation(
+  return repairPopulation(getMutationPopulation(
     getCrossoverPopulation(population, globalCourses),
     globalCourses,
     data
-  );
+  ),data)
 };
+export const repairPopulation = function(population,data){
+  console.log("repairPopulation",population)
+  return population.map(schedule=>{
+    return repairSchedule(schedule,data)
+  })
 
+}
 export const getMutationPopulation = function(
   population1,
   globalCourses,
@@ -202,7 +208,7 @@ export const getMutationPopulation = function(
 };
 export const getMutationSchedule = function(mutateSchedule, data) {
   data.courses = mutateSchedule;
-  let MUTATION_RATE = 0.2;
+  let MUTATION_RATE = 0.1;
   let schedule = initilizeSchedule(data);
   for (let i = 1; i < mutateSchedule.length; i++) {
     if (MUTATION_RATE > Math.random()) {
@@ -211,3 +217,50 @@ export const getMutationSchedule = function(mutateSchedule, data) {
   }
   return mutateSchedule;
 };
+/////////////////////////////////////
+
+//return list of suggested time zoons and classroms that passed eevent
+// is allowed to located their with 0 conflicts
+export const getAvailabile_Times_Classrooms= function (event, schedule,data){
+  // data could be changed
+  let availabile_times_classrooms=[]
+
+
+  let tempSchedule=_.cloneDeep( schedule)
+  let tempEvent=  tempSchedule.filter(evt=> evt.id==event.id)[0]
+  // if event has been deleted
+  if(tempEvent== undefined)return[]
+  let conflictsSize
+
+  
+    for (let j = 0; j < data.dates.length; j++) {
+      for (let i = 0; i < data.classrooms.length; i++) {
+      for (let k = 0; k < data.hours.length; k++) {
+   
+        tempEvent.classrooms = [
+          data.classrooms[i]
+        ];
+        let tempDate=new Date(data.dates[j])
+        tempEvent.startingHour = 
+        new Date(2001, 1, 1,
+        data.hours[
+          k
+        ], 0)
+        tempEvent.eventDate =
+          data.dates[j];
+          conflictsSize=setConflicts(
+            [tempEvent],
+            tempSchedule,
+            "conflicts")
+      if(conflictsSize==0){
+        availabile_times_classrooms.push(_.cloneDeep(tempEvent))
+      }
+     
+        
+      }
+      
+    }
+    
+  }
+  return availabile_times_classrooms
+  }

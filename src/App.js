@@ -27,7 +27,7 @@ export default class App extends Component {
       <Provider store={store}>
         <Router>
           
-          <Switch>
+        <Switch>
             <Route exact path="/">
               <div className="auth-wrapper">
                 <div className="auth-inner">
@@ -35,27 +35,13 @@ export default class App extends Component {
                 </div>
               </div>
             </Route>
-            <Route path="/Schedule">
-                <Schedule />
-            </Route>
+
             <Route path="/SideNavbar">
-              <SideNavbar />
+              <SideNavbar   show={true} />
+            
             </Route>
-     
-            <Route path="/SemestersPage">
-              <SemestersPage />
-            </Route>
-            <Route path="/CourseGroups">
-              <CourseGroups />
-            </Route>
-            <Route path="/Test">
-              <Test />
-            </Route>
-            <Route path="/TeachersAvailability">
-              <Test />
-            </Route>
-          
-          </Switch>
+           
+            </Switch>
         </Router>
       </Provider>
     );

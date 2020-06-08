@@ -5,10 +5,10 @@ import Cell from "./Cell";
 import UpdateEvent from "./UpdateEvent";
 import _ from "lodash";
 import GridLayout from "react-grid-layout";
-
+import {Button} from 'primereact/button';
 import { Row, Col } from "react-bootstrap";
 //alerts
-import { Alert } from "reactstrap";
+import {Growl} from 'primereact/growl';
 //
 import { connect } from "react-redux";
 import { filteredFetch, updateChangedCourses } from "../redux";
@@ -31,7 +31,7 @@ import {
   getCrossoverPopulation,
   evolvPopulation
 } from "../jsFiles/GeneticAlgorithm";
-
+import {SplitButton} from 'primereact/splitbutton';
 var layout = [];
 
 var row = hours.length,
@@ -59,9 +59,9 @@ class Schedule extends React.Component {
     filteredFetch,
     reduxChangedCourses,
     updateChangedCourses,
-    changedIdes,
+ 
     selectedSemester,
-    selectedTimetable
+    selectedTimetable,
   ) {
     super();
     this.get_sceduled_cource_html = this.get_sceduled_cource_html.bind(this);
@@ -73,7 +73,7 @@ class Schedule extends React.Component {
       details_is_open: false,
       selectedCourse: null,
       selectedYear: 1,// on menu in  schedule left side
-      alertVisble: false,
+     
       _isMounted: false
     };
   }
@@ -82,21 +82,34 @@ class Schedule extends React.Component {
 
   /*-------------------------------react hooks------------------------------------*/
   componentDidMount = () => {
- 
-    this.getAllCourses();
+    this.setInitialState()
     this.setState({
-    
-      days: this.props.selectedTimetable.days,
-        
-      _isMounted: true
+  
+      _isMounted: true,
+      prevSchedule:_.cloneDeep(this.props.reduxChangedCourses),
     });
   };
-  generate_automatik_schedle = () => {
+  setInitialState=()=>{
+
+    console.log("new",this.props)
+    this.setAllCourses(this.props.reduxChangedCourses);
+    this.setState({
+      days: this.props.selectedTimetable.days,
+        
+     
+    });
+  }
+  generate_automatic_schedule = () => {
+    // store prvious schedule before automatic schedule generation
+    this.setState({
+      prevSchedule:_.cloneDeep(this.state.scheduledCourses.concat(this.state.unscheduledCourses)),
+    });
+  
     let cossoverd
     // initilizeSchedule = function (courses, classrooms, dates , hours)
     let tempDays=this.state.days.map(day => day.dateValue)
     let data = {
-      classrooms: this.props.classrooms,//.slice(0,this.props.classrooms.length-2),
+      classrooms: this.props.classrooms.filter(c=>c.departmentId==this.props.departmentData.selectedDepartment.id),//.slice(0,this.props.classrooms.length-2),
   
       hours: 
       ["09","13","16"],
@@ -110,27 +123,12 @@ class Schedule extends React.Component {
       tempDays
     };
   
-     /*
-     this.props.updateChangedCourses({
-      //data:   JSON.parse(JSON.stringify(allChangedCourse))  ,
-      data: initilizeSchedule(data),
-      arrayName: "ChangedOpenedCoursesEvents"
-    });
-    setTimeout(() => {
-      this.componentDidMount()
-          // it seems unnessary nut after schedle generation first result cell locaated witb problems
-          this.get_next_day()
-          this.get_previous_day()
-    }, 500);
-    */
-   
-     
     getGlobalCourses(this.props.selectedSemester.id,this.props.departmentData.selectedDepartment.id,this.props.selectedTimetable.id)
         .then(globalCOurses=>{
           let fitness=0
           let counter=0;
           let population
-          population = initilizePopulation(60, data)
+          population = initilizePopulation(50, data)
           sortPopulation(population,globalCOurses)
           for (let i = 0; i < population.length; i++) {
               
@@ -139,8 +137,9 @@ class Schedule extends React.Component {
             console.log("pop ",i," fitness ",getFitness(population[i],globalCOurses))
            
           }
-         /* while(counter<10&& fitness!=1){
-            console.log("evolve pop")
+          fitness=getFitness(population[0],[])
+         while(counter<20&& fitness!=1){
+            console.log("evolve pop counter",counter)
             counter++
              //population=_.cloneDeep(getCrossoverPopulation(population,globalCOurses))
              population=_.cloneDeep( evolvPopulation(population,globalCOurses,data))
@@ -153,7 +152,14 @@ class Schedule extends React.Component {
               if (fitness==1) break
             }
             
-          }*/
+          }
+          //
+          if( getFitness(population[0],[])==1){
+            this.growl.show({severity: 'success', summary: '', detail: 'Takvim oluşturuldu'}); 
+          }
+          else{
+            this.growl.show({severity: 'error', detail: 'Çakışma bulunuyor'});
+          }
           console.log("--çalıştı en iyi",   getFitness(population[0],globalCOurses))
           getFitness(population[0],globalCOurses)
          
@@ -164,12 +170,9 @@ class Schedule extends React.Component {
               });
               
         }).then(()=>{
-          console.log("girdiiiiiiiiiiiiiiiiiii")
-          this.componentDidMount()
-          // it seems unnessary nut after schedle generation first result cell locaated witb problems
-          this.get_next_day()
-          this.get_previous_day()
-          //.then(this.setState({}))
+          this.setInitialState()
+          this.refreshSchedule()
+        
           
           
         })
@@ -177,25 +180,26 @@ class Schedule extends React.Component {
     
     
   };
+  updateSelectedEvent=()=>{
+   this.setState({
+     selectedCourse:null
+   })
+  }
   componentWillReceiveProps = props => {
     console.log("componentWillReceiveProps my props is ", props);
+
     this.setState({});
   };
   componentWillUnmount() {
     let allChangedCourse = this.state.scheduledCourses.concat(
       this.state.unscheduledCourses
     );
-    console.log("allChangedCourse", allChangedCourse);
     this.props.updateChangedCourses({
       //data:   JSON.parse(JSON.stringify(allChangedCourse))  ,
       data: allChangedCourse,
       arrayName: "ChangedOpenedCoursesEvents"
     });
-    this.props.updateChangedCourses({
-      data: this.changed,
-      arrayName: "changedIdes"
-    });
-    console.log("çıktı");
+  
   }
   /*----------------------------------Drag and drop functions-------------------------------------------------------*/
   /*
@@ -441,11 +445,7 @@ class Schedule extends React.Component {
     }, 10);
   }
 
-  toggle_alert = () => {
-    this.setState(prevState => {
-      return { alertVisble: !prevState.alertVisble };
-    });
-  };
+
   /*--------------------------------Details functions (Modal)------------------------------------*/
   toggle_details = course_id => {
     this.componentWillUnmount();
@@ -457,6 +457,7 @@ class Schedule extends React.Component {
     });
   };
   toggle_unsceduled_details = course_id => {
+    this.componentWillUnmount();
     this.setState(prevState => {
       return {
         selectedCourse: prevState.unscheduledCourses.filter(
@@ -467,7 +468,7 @@ class Schedule extends React.Component {
     });
   };
   close_details = () => {
-    this.componentDidMount();
+    this.setInitialState()
     this.setState({
       details_is_open: false
     },()=>{
@@ -476,23 +477,27 @@ class Schedule extends React.Component {
       
     });
     setTimeout(() => {
-      this.get_next_day()
-      this.get_previous_day()
-      this.get_next_semester_unsceduledCourses()
-      this.get_previous_semester_unsceduledCourses()
+      this.refreshSchedule()
       this.setState({});
     }, 100);
   };
+  refreshSchedule=()=>{
+    this.get_next_semester_unsceduledCourses()
+    this.get_previous_semester_unsceduledCourses() 
+    this.get_next_day()
+    this.get_previous_day()
+
+  }
   /*-------------------------------------Course functions----------------------------------------------*/
 
-  getAllCourses = () => {
+  setAllCourses = (courses) => {
     let scheduled = [];
     let unscheduled = [];
 
 
     // courses with unsaved changes
     // copy array without references to store initial course values
-    let CoursesCopy = _.cloneDeep(this.props.reduxChangedCourses);
+    let CoursesCopy = _.cloneDeep(courses);
     CoursesCopy.map(d => {
       // for controling cell width
       d.width = this.getCellwidth(d);
@@ -505,7 +510,7 @@ class Schedule extends React.Component {
         : scheduled.push(d);
     });
 
-    this.setState(
+    return this.setState(
       {
         scheduledCourses: scheduled,
         unscheduledCourses: unscheduled,
@@ -517,14 +522,18 @@ class Schedule extends React.Component {
           this.state.scheduledCourses,
           "conflicts"
         );
-        this.setState({});
+        setTimeout(() => {
+          this.refreshSchedule() 
+        }, 10);
+        
+         
+       
       }
     );
 
-    console.log("scheduled fetch", scheduled);
-    console.log("unsceduled fetch", unscheduled);
-  };
 
+  };
+  
   getCourse(id) {
     let unsceduledCourse = this.state.unscheduledCourses.filter(
       c => c.id == id
@@ -587,6 +596,7 @@ class Schedule extends React.Component {
  
 
   /*-------------------------------menu functions------------------------------------*/
+  // student semester number in course defenation 
   get_previous_semester_unsceduledCourses = () => {
     this.setState(prevState => {
       let previous = (prevState.selectedYear - 1) % years.length;
@@ -607,7 +617,15 @@ class Schedule extends React.Component {
       course => this.getSemesterNoByid(course.id) === this.state.selectedYear
     );
   };
-
+updateReduxOpenedCourses=()=>{
+ return  this.props
+  .filteredFetch({
+    deparmentId: this.props.departmentData.selectedDepartment.id,
+    selectedSemester: this.props.selectedSemester,
+    arrayName: "openedCoursesEvents",
+    selectedTimetable: this.props.selectedTimetable
+  })
+}
   /*----------------------------headers functions--------------------------------*/
   create_static_header_cell_html = (
     keyVal,
@@ -713,17 +731,10 @@ class Schedule extends React.Component {
           <Row className="alarmRow">
             <Col lg={1}></Col>
 
-            <Col lg={9}>
-              <div className="alert">
-                <Alert
-                  color="success"
-                  isOpen={this.state.alertVisble}
-                  toggle={this.toggle_alert}
-                  fade={true}
-                >
-                  değişiklikler kaydedildi
-                </Alert>
-              </div>
+            <Col lg={9} style={{ marginTop: "2%" }}>
+             
+              <Growl ref={(el) => this.growl = el} />
+             
             </Col>
            
           </Row>
@@ -731,6 +742,8 @@ class Schedule extends React.Component {
             <Col lg={1}></Col>
 
             <Col lg={10}>
+         
+
               <GridLayout
                 className="layout grid"
                 {...{
@@ -825,6 +838,7 @@ class Schedule extends React.Component {
                 {this.headers}
                 {cellsComponents}
               </GridLayout>
+             
             </Col>
           </Row>
           {this.state.scheduledCourses.length == 0 &&
@@ -835,15 +849,63 @@ class Schedule extends React.Component {
               addCourseEventIsOpen={this.state.details_is_open}
               close_details={this.close_details}
               selectedEvent={this.state.selectedCourse}
+              updateSelectedEvent={this.updateSelectedEvent}
+              parent={"Schedule"}
+              updateSchedule={this.setInitialState}
+         
+
             /> 
           )}
           <Row className="GridRow">
             <Col lg={5}></Col>
             <Col lg={3} style={{ marginLeft: "22%",whiteSpace:"nowrap" }}>
-            <button 
-            type="button"
-            className="btn btn-secondary save"
-            onClick={this.generate_automatik_schedle}> otomatik takvim oluştur</button>
+          
+             <SplitButton 
+            
+             label="otomatik takvim oluştur"
+               onClick={this.generate_automatic_schedule}
+                model={[
+                  
+                    {
+                        label: 'Önceki Takvim',
+                        icon: 'pi pi-refresh',
+                        command: (e) => {
+                          this.setAllCourses(this.state.prevSchedule);
+                          this.growl.show({ severity: 'success', detail: 'Önceki takvim' });
+                          
+                        }
+                    },
+                    {
+                        label: 'Sil',
+                        icon: 'pi pi-times',
+                        command: (e) => {
+                          let tempScheduledCorses=this.state.scheduledCourses.map(
+                            
+                            course=>{
+                              course.startingHour = null;
+                               course.eventDate = null;
+                               return course
+                              
+                            }
+                          ) 
+                          this.setState(prevState=>{
+                            return{
+                              unscheduledCourses:prevState.unscheduledCourses.concat(tempScheduledCorses),
+                              scheduledCourses:[]
+                            }
+                          },
+                          ()=>{
+                            setTimeout(() => {
+                              this.get_next_semester_unsceduledCourses()
+                            this.get_previous_semester_unsceduledCourses() 
+                            }, 10);
+                            
+                          })
+                          
+                            this.growl.show({ severity: 'success', detail: 'Takvim silindi' });
+                        }
+                    },
+                ]}></SplitButton>
               </Col>
             
             <Col lg={2} style={{ marginLeft: "-6%" }}>
@@ -862,24 +924,11 @@ class Schedule extends React.Component {
                   console.log("changedEvents", changedEvents);
                   if (changedEvents.length != 0) {
                     send_changedCourses_to_server(changedEvents).then(() => {
-                      // very dangerous must be controled and fetched after reqquest from db come
+                      //must be controled and fetched after reqquest from db come
                       setTimeout(() => {
-                        this.props
-                          .filteredFetch({
-                            deparmentId: this.props.departmentData.selectedDepartment.id,
-                            selectedSemester: this.props.selectedSemester,
-                            arrayName: "openedCoursesEvents",
-                            selectedTimetable: this.props.selectedTimetable
-                          })
+                        this.updateReduxOpenedCourses()
                           .then(() => {
-                            this.toggle_alert();
-                            setTimeout(() => {
-                              
-
-                              this.setState({
-                                alertVisble: false
-                              });
-                            }, 2000);
+                            this.growl.show({severity: 'success', summary: '', detail: 'değişiklikler kaydedildi'});
                           });
                       }, 500);
                     });
@@ -890,6 +939,7 @@ class Schedule extends React.Component {
               </button>
          
             </Col>
+            
           </Row>
         </div>
       </>
@@ -909,7 +959,7 @@ const mapStateToProps = state => {
       evt.startingHour= evt.startingHour== null? null: new Date(evt.startingHour)
       return evt
     }),
-    changedIdes: state.data.changedIdes,
+
     selectedSemester: state.department.selectedSemester,
     selectedTimetable: state.department.selectedTimetable,
     classrooms: state.data.classrooms

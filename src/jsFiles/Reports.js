@@ -308,7 +308,7 @@ export const get_Teacher_events =  function(
       if (evt.teachers[i].id == teacher.id) teacher_events.push(evt);
     }
   });
-  console.log("iç teacher_events", teacher_events);
+
   return teacher_events;
 };
 export const get_formated_Teacher_events = function(teacherEvents) {
@@ -339,7 +339,7 @@ export const get_formated_Teacher_events = function(teacherEvents) {
   });
   return formated_events;
 };
-// return list with n*m when n week days and m hours in day with 0,1 data value 1 if teacher 
+// return list with n*m when n week days and m hours in day. with 0,1 data value 1 if teacher 
 // avalible and 0 if not
 export const get_formated_Teacher_restrictions = function(teacherEvents) {
   // format teacher events to convert it to excel

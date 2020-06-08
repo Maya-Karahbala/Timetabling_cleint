@@ -5,30 +5,33 @@ import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import { Row, Col } from "react-bootstrap";
 import { Card, Button, CardTitle, CardText } from "reactstrap";
-import {printTeachers} from "../jsFiles/Conflicts"
+import { printTeachers } from "../jsFiles/Conflicts";
 import CourseDetails from "./CourseDetails";
 import { connect } from "react-redux";
+import { setConflicts } from "../jsFiles/Conflicts";
+import { getGlobalCourses } from "../jsFiles/Functions";
+import { getFitness } from "../jsFiles/GeneticAlgorithm";
 import {
-
-  setConflicts
-} from "../jsFiles/Conflicts";
-import{
-getGlobalCourses
-}from "../jsFiles/Functions"
-import{
-  getFitness
-} from "../jsFiles/GeneticAlgorithm";
-import{
   get_Teacher_events,
-  get_formated_Teacher_events
-  }from "../jsFiles/Reports"
+  get_formated_Teacher_events,
+} from "../jsFiles/Reports";
+import Table from "react-bootstrap/Table";
+import UpdateEvent from "./UpdateEvent";
+import { Dropdown } from "primereact/dropdown";
 class ConflictsPage extends Component {
-  constructor(departments, changedCourses, semesterId, departmentId, courses,timetableId,printTeachers) {
+  constructor(
+    departments,
+    changedCourses,
+    semesterId,
+    departmentId,
+    courses,
+    selectedTimetable,
+    printTeachers
+  ) {
     super();
-    this.showDepartmentConflicts = this.showDepartmentConflicts.bind(this);
-    this.showConflicts = this.showConflicts.bind(this);
-    this.updateData = this.updateData.bind(this);
-    this.toggleModal = this.toggleModal.bind(this);
+    this.getLocalConflicts = this.getLocalConflicts.bind(this);
+    this.getGlobalConflicts = this.getGlobalConflicts.bind(this);
+
     this.state = {
       nodes: null,
       expandedKeys: {},
@@ -37,130 +40,122 @@ class ConflictsPage extends Component {
       course2: null,
       conflictType: null,
       isloading: true,
-      universityCourses: []
+      universityCourses: [],
+      allConflicts: [],
+      updateEventIsOpen: false,
+      selectedEvent: null,
+      selectedDepId: null,
     };
   }
-  depClassroomConflicts = [];
-  depTeacherConflicts = [];
-  ClassroomConflicts = [];
-  TeacherConflicts = [];
-  data = [];
-  allConflicts = new Map();
+
   componentDidMount = () => {
     this.getUniversityCourses();
-    setConflicts(this.props.changedCourses,this.props.changedCourses,"conflicts");
+    // local conflicts
+    setConflicts(
+      this.props.changedCourses,
+      this.props.changedCourses,
+      "conflicts"
+    );
   };
-
-
+  close_details = () => {
+    this.setState({
+      updateEventIsOpen: false,
+    });
+    this.componentDidMount();
+  };
   getUniversityCourses = () => {
- 
-        getGlobalCourses(this.props.semesterId,this.props.departmentId,this.props.timetableId)
-        .then(result=>{
-         
-          console.log("fitness",
-          getFitness(this.props.changedCourses,result))
-          console.log(this.props.teachers[0],this.props.openedCoursesEvents,result)
+    getGlobalCourses(
+      this.props.semesterId,
+      this.props.departmentId,
+      this.props.selectedTimetable.id
+    )
+      .then((result) => {
+        console.log("fitness", getFitness(this.props.changedCourses, result));
+        console.log(
+          this.props.teachers[0],
+          this.props.openedCoursesEvents,
+          result
+        );
 
-          //console.log(get_formated_Teacher_events(get_Teacher_events(this.props.teachers[0],this.props.openedCoursesEvents)))
-          this.setState({
-            universityCourses: result
-          });
-          
-        })
-        .then(()=>{
-          setConflicts(this.props.changedCourses,this.state.universityCourses,"universityConflicts");
-          
+        //console.log(get_formated_Teacher_events(get_Teacher_events(this.props.teachers[0],this.props.openedCoursesEvents)))
         this.setState({
-          isloading: false
-        }
-        )})
-       
-    
-      
+          universityCourses: result,
+        });
+      })
+      .then(() => {
+        setConflicts(
+          this.props.changedCourses,
+          this.state.universityCourses,
+          "universityConflicts"
+        );
+
+        this.setState({
+          isloading: false,
+        });
+        this.storeAllConflicts();
+      });
   };
 
-
-  
-
-
-
-  showDepartmentConflicts = (array, type, order) => {
+  getLocalConflicts = () => {
     let temp = [];
-    let counter = 0;
-    this.props.changedCourses.map(course => {
+    let tempLocalConflicts = [];
+    this.props.changedCourses.map((course) => {
       if (course.conflicts.length !== 0) {
-        course.conflicts.map(conflict => {
-          if (conflict.type === type) {
-            //prevent show conflicts 2 time for each course
-            if (
-              this.add_if_not_exists(
-                [conflict.conflictedCourse.id, course.id],
-                temp
-              )
-            ) {
-              array.push({
-                key: order + counter,
-                label:
-                  conflict.conflictedCourse.Opened_course.Department_course
-                    .Course.code +
-                  /*
-                  " (id: " +
-                  conflict.conflictedCourse.id +
-                  ")" +*/
-                  " , " +
-                  course.Opened_course.Department_course.Course.code
-                /*" +(id: " +
-                  course.id +
-                  ")"*/
-              });
-              this.allConflicts.set(order + counter, {
-                course1: course,
-                course2: conflict.conflictedCourse,
-                type: type
-              });
-              counter++;
-            }
+        course.conflicts.map((conflict) => {
+          //prevent show conflicts 2 time for each course
+          if (
+            conflict.conflictedCourse == undefined ||
+            this.add_if_not_exists(
+              [conflict.conflictedCourse.id, course.id],
+              temp
+            )
+          ) {
+            tempLocalConflicts.push({
+              course1: course,
+              course2: conflict.conflictedCourse,
+              type: conflict.type,
+              type2: "Depatment",
+            });
           }
         });
       }
     });
+    return tempLocalConflicts;
   };
-  showConflicts = (array, type, order) => {
-   
-    let counter = 0;
-    this.props.changedCourses.map(course => {
+  getGlobalConflicts = () => {
+    let tempGlobalConflicts = [];
+    this.props.changedCourses.map((course) => {
       if (course.universityConflicts.length !== 0) {
-        course.universityConflicts.map(conflict => {
-          if (conflict.type === type) {
-            array.push({
-              key: order + counter,
-              label:
-                conflict.conflictedCourse.Opened_course.Department_course.Course
-                  .code +
-                /*
-              " (id: " +
-              conflict.conflictedCourse.id +
-              ")" +*/
-                " , " +
-                course.Opened_course.Department_course.Course.code
-              /*" +(id: " +
-              course.id +
-              ")"*/
-            });
-            this.allConflicts.set(order + counter, {
-              course1: course,
-              course2: conflict.conflictedCourse,
-              type: type
-            });
-            counter++;
-          }
+        course.universityConflicts.map((conflict) => {
+          tempGlobalConflicts.push({
+            course1: course,
+            course2: conflict.conflictedCourse,
+            type: conflict.type,
+            type2: "global",
+          });
         });
       }
+    });
+    return tempGlobalConflicts;
+  };
+  updateSelectedEvent = () => {
+    this.setState({
+      selectedEvent: null,
+    });
+  };
+
+  storeAllConflicts = () => {
+    this.setState((prev) => {
+      return {
+        allConflicts: this.getLocalConflicts().concat(
+          this.getGlobalConflicts()
+        ),
+      };
     });
   };
   add_if_not_exists = (item, array) => {
     let result = true;
-    array.map(item2 => {
+    array.map((item2) => {
       if (
         (item2[0] === item[0] && item2[1] === item[1]) ||
         (item2[0] === item[1] && item2[1] === item[0])
@@ -170,189 +165,226 @@ class ConflictsPage extends Component {
     if (result) array.push(item);
     return result;
   };
-  updateData = () => {
-    this.data = [
-      {
-        key: "0",
-        label: "  Bölüm Çakışmaları",
-        icon: "fa fa-map-marker fa-lg",
-        children: [
-          {
-            key: "0-0",
-            label: "Sınıf Çakışmaları",
-
-            children: this.depClassroomConflicts
-          },
-          {
-            key: "0-1",
-            label: "Öğretmen Çakışmaları",
-            children: this.depTeacherConflicts
-          }
-        ]
-      },
-      {
-        key: "1",
-        label: "  Bölümler Arası Çakışmalar",
-        icon: "fa fa-university",
-        children: [
-          {
-            key: "1-0",
-            label: "Sınıf Çakışmaları",
-            children: this.ClassroomConflicts
-          },
-          {
-            key: "1-1",
-            label: "Öğretmen Çakışmaları",
-            children: this.TeacherConflicts
-          }
-        ]
-      }
-    ];
-  };
-  clear() {
-    this.depClassroomConflicts = [];
-    this.depTeacherConflicts = [];
-    this.ClassroomConflicts = [];
-    this.TeacherConflicts = [];
-    this.allConflicts = new Map();
-  }
-  onToggle(e) {
-    this.setState({ expandedKeys: e.value });
-  }
-  onSelectionChange(e) {
-    
-    // open conflict details only if there is a selected conflict not header
-    if (e.value.length > 3) {
-      let conflict = this.allConflicts.get(e.value);
-      this.setState({
-        course1: conflict.course1,
-        course2: conflict.course2,
-        conflictType: conflict.type,
-        modal: true
-      });
-    }
-  }
-  toggleModal() {
-    this.setState({
-      modal: false
-    });
-  }
 
   render() {
+    console.log("s", this.state);
     if (!this.state.isloading) {
-      this.clear();
-      this.showDepartmentConflicts(
-        this.depClassroomConflicts,
-        "classroom",
-        "0-0-"
-      );
-      this.showDepartmentConflicts(this.depTeacherConflicts, "teacher", "0-1-");
-      this.showConflicts(this.ClassroomConflicts, "classroom", "1-0-");
-      this.showConflicts(this.TeacherConflicts, "teacher", "1-1-");
-      this.updateData();
-      
+      console.log("this.allConflicts", this.state, this.state.allConflicts);
     }
     return (
       <>
         {this.state.isloading ? (
-          ""
+          " loading"
         ) : (
           <Row style={{ marginTop: "2%", width: "100%" }}>
-            {    console.log("print Teachers",printTeachers())}
-            <Col lg={3} style={{ marginLeft: "5%" }}>
-              <Tree
-                value={this.data}
-                expandedKeys={this.state.expandedKeys}
-                onToggle={e => this.onToggle(e)}
-                style={{ marginTop: ".5em" }}
-                selectionMode="single"
-                onSelectionChange={e => this.onSelectionChange(e)}
-              />
-            </Col>
+            <Col lg={1}></Col>
+            <Col lg={11}>
+              <Table bordered>
+                <thead>
+                  <tr
+                    style={{
+                      backgroundColor: "rgb(221, 232, 239)",
+                      border: "3px solid rgb(212, 212, 212)",
+                    }}
+                  >
+                    <td colSpan={4}>
+                      <h5 style={{ textAlign: "center" }}>Çakışmalar</h5>
+                    </td>
+                  </tr>
+                  <tr style={{ backgroundColor: "rgb(241, 245, 247)" }}>
+                    <th></th>
+                    <th>1. Ders Bilgileri</th>
+                    <th>2. Ders Bilgileri</th>
+                    <th>Çakışam tipi</th>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td>
+                    <i class="fa fa-search" aria-hidden="true"
+                     ></i>
+                      <Dropdown
+                        style={{marginLeft:"5%", width: "90%" }}
+                        filter={true}
+                        options={[{ label: "Tüm Bölümler", value: null }].concat(...this.props.departments.map((dep) => {
+                          return { label: dep.name, value: dep.id };
+                        }))}
+                        value={this.state.selectedDepId}
+                        onChange={(e) => {
+                          this.setState({
+                            selectedDepId: e.value,
+                          });
+                        }}
+                      />
+                    </td>
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.state.allConflicts
+                    .filter((conf) => {
+                      return (
+                        (
+                          this.state.selectedDepId == this.props.departmentId &&
+                           conf.course2 == undefined)||
+                        this.state.selectedDepId == null ||
+                        (conf.course2 != undefined &&
+                          conf.course2.Opened_course.Department_course
+                            .departmentId == this.state.selectedDepId)
+                      );
+                    })
+                    .map((conflict, index) => {
+                      return (
+                        <tr
+                          style={{
+                            borderBottom: "3px solid rgb(212, 212, 212)",
+                          }}
+                        >
+                          <td>{index + 1}</td>
+                          <td
+                            onClick={() => {
+                              console.log(conflict.course1);
+                              this.setState({
+                                selectedEvent: conflict.course1,
+                                updateEventIsOpen: true,
+                              });
+                            }}
+                            className="gri"
+                          >
+                            <CourseDetails
+                              selectedCourse={conflict.course1}
+                              conflictType={conflict.type}
+                              timetableType={
+                                this.props.selectedTimetable.timetableType
+                              }
+                            />
+                            <pre>
+                              Bölüm adı{"          :"}
+                              {
+                                this.props.departments.filter(
+                                  (dep) =>
+                                    dep.id ==
+                                    conflict.course1.Opened_course
+                                      .Department_course.departmentId
+                                )[0].name
+                              }
+                            </pre>
+                          </td>
+                          <td
+                            className={
+                              conflict.course2 != undefined &&
+                              conflict.course2.Opened_course.Department_course
+                                .departmentId == this.props.departmentId
+                                ? "gri"
+                                : ""
+                            }
+                          >
+                            {conflict.course2 == undefined ? (
+                              ""
+                            ) : (
+                              <div
+                                onClick={() => {
+                                  if (
+                                    conflict.course2 != undefined &&
+                                    conflict.course2.Opened_course
+                                      .Department_course.departmentId ==
+                                      this.props.departmentId
+                                  ) {
+                                    this.setState({
+                                      selectedEvent: conflict.course2,
+                                      updateEventIsOpen: true,
+                                    });
+                                  }
+                                }}
+                              >
+                                <CourseDetails
+                                  selectedCourse={conflict.course2}
+                                  conflictType={conflict.type}
+                                  timetableType={
+                                    this.props.selectedTimetable.timetableType
+                                  }
+                                />
+                                <pre>
+                                  Bölüm adı{"          :"}
+                                  {
+                                    this.props.departments.filter(
+                                      (dep) =>
+                                        dep.id ==
+                                        conflict.course2.Opened_course
+                                          .Department_course.departmentId
+                                    )[0].name
+                                  }
+                                </pre>
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ width: "15%" }}>
+                            {" "}
+                            {(() => {
+                              switch (conflict.type) {
+                                case "teacher_restriction":
+                                  return "Öğretim üyesinin müsaitlik durumuna uygun değil";
+                                case "classroom":
+                                  return "Derslik çakışması";
+                                case "teacher":
+                                  return "Öğretim üyesi çakışması";
+                                case "unsuitable classrom capacity":
+                                  return "Sınıf kapasitesi uygun değil";
+                                case "unsuitable classrom":
+                                  return "sınıf özellikleri uygun değil";
 
-            <Col lg={6} style={{ marginTop: "0%", marginLeft: "5%" }}>
-              {this.state.course1 === null ? (
-                ""
-              ) : (
-                <div>
-                  <Row>
-                    <Card body>
-                      <CardTitle> 1. Ders Bilgileri</CardTitle>
-                      <CardText>
-                        {" "}
-                        <CourseDetails
-                          selectedCourse={this.state.course1}
-                          conflictType={this.state.conflictType}
-                        />
-                        <pre>
-                          Bölüm adı{"          :"}
-                          {
-                            this.props.departments.get(
-                              this.state.course1.Opened_course.Department_course
-                                .departmentId
-                            ).name
-                          }{" "}
-                        </pre>
-                      </CardText>
-                    </Card>
-                  </Row>
-                  <Row style={{ marginTop: "-6%"}}>
-                    <Card body>
-                      <CardTitle> 2. Ders Bilgileri</CardTitle>
-                      <CardText>
-                        {" "}
-                        <CourseDetails
-                          selectedCourse={this.state.course2}
-                          conflictType={this.state.conflictType}
-                        />
-                        <pre>
-                          Bölüm adı{"          :"}
-                          {
-                            this.props.departments.get(
-                              this.state.course2.Opened_course.Department_course
-                                .departmentId
-                            ).name
-                          }{" "}
-                        </pre>
-                      </CardText>
-                    </Card>
-                  </Row>
-                </div>
-              )}
+                                default:
+                                  return "";
+                              }
+                            })()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </Table>
             </Col>
+            <UpdateEvent
+              addCourseEventIsOpen={this.state.updateEventIsOpen}
+              close_details={this.close_details}
+              selectedEvent={this.state.selectedEvent}
+              updateSelectedEvent={this.updateSelectedEvent}
+            />
           </Row>
         )}
       </>
     );
   }
 }
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
     semesterId: state.department.selectedSemester.id,
     departmentId: state.department.selectedDepartment.id,
-    timetableId:state.department.selectedTimetable.id,
-    departments: state.department.departments,
+    selectedTimetable: state.department.selectedTimetable,
+    departments: state.data.departments,
     // need to be filtered now we paa all events
-    openedCoursesEvents:state.data.openedCoursesEvents.map(evt=>{
-      evt.startingHour= evt.startingHour== null? null: new Date(evt.startingHour)
-      return evt
+    openedCoursesEvents: state.data.openedCoursesEvents.map((evt) => {
+      evt.startingHour =
+        evt.startingHour == null ? null : new Date(evt.startingHour);
+      return evt;
     }),
-    changedCourses: state.data.ChangedOpenedCoursesEvents.map(evt=>{
-     if( course => course.eventDate !== null && course.startingHour !== null){
-      evt.startingHour= evt.startingHour== null? null: new Date(evt.startingHour)
-      return evt
-     }
+    changedCourses: state.data.ChangedOpenedCoursesEvents.map((evt) => {
+      if (
+        (course) => course.eventDate !== null && course.startingHour !== null
+      ) {
+        evt.startingHour =
+          evt.startingHour == null ? null : new Date(evt.startingHour);
+        return evt;
+      }
     }),
-    
+
     // unchanged
     courses: state.data.openedCoursesEvents,
-    teachers:state.data.teachers
+    teachers: state.data.teachers,
   };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {};
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ConflictsPage);
-

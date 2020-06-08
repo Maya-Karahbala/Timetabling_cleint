@@ -165,7 +165,7 @@ class AddTimetable extends Component {
 const mapStateToProps = state => {
   return {
     selectedSemester: state.department.selectedSemester,
-    departments: Array.from(state.department.departments.values()),
+    departments: state.data.departments,
     selectedDepartment: state.department.selectedDepartment
   };
 };

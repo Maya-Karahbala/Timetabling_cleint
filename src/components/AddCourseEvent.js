@@ -19,31 +19,21 @@ class AddCourseEvent extends Component {
       
     };
   }
+  clearState=()=>{
+    this.setState({
+      eventType: eventTypes[0].value,
+      selectedTeachers: [],
+      selectedClassrooms: [],
+      student_number:30})
+  }
   componentDidMount = () => {
    
     this.props.teachers.map(t => {
       t.fullName = " " + t.firstName + " " + t.lastName + "  ";
     });
-    this.setState({
-      eventType: eventTypes[0].value,
-      selectedTeachers: [this.props.teachers[0]],
-      selectedClassrooms: [this.props.classrooms[0]],
-      student_number:30
-      
-     
-   
-    },()=>{
-      if(this.props!= undefined)this.setState( {didMount: true})
-      console.log("   componentDidMount           this.props.selectedCourse            ",this.props.selectedCourse);
-      console.log("",this.openedCourseId)
-      console.log("",this.openedCourseId)
-      console.log( "this.state.selectedTeachers ",this.state.selectedTeachers)
-      console.log( "this.state.selectedClassrooms ",this.state.selectedClassrooms)
-   
-    }
-   
-    );
-    
+    this.clearState();
+    if(this.props!= undefined)this.setState( {didMount: true})
+
    
   };
   componentWillUnmount=()=> {
@@ -73,7 +63,7 @@ class AddCourseEvent extends Component {
 
   };
   openedCourseId = undefined;
-  CourseEventId = undefined;
+
 
   addOpenedCourse = openCourse => {
     return fetch("/addOpendCourse", {
@@ -83,18 +73,14 @@ class AddCourseEvent extends Component {
       })
     }).then(response => {
       if (response.ok) {
-        //deparmentId is not recognized
         response
           .json()
           .then(json => {
-            console.log("-------------data came from database openCourse-----", json);
-               //update opened courses
-               this.props.addOpenedCourse(json,this.props.selectedCourse)
+
+            this.props.addOpenedCourse(json,this.props.selectedCourse)
             this.openedCourseId = json.id;
-            //this.selectedCourse.Opened_courses.push(json)
           })
           .then(() => {
-            console.log("this.openedCourseId", this.openedCourseId);
             let evt = {
               eventType: this.state.eventType,
               duration: this.getDuration(),
@@ -109,17 +95,20 @@ class AddCourseEvent extends Component {
       }
     });
   };
-  async  secondFunction(){
-    return await this.addEventTeachers();
 
-    
-  };
-  async  secondFunction2(){
-    return await this.addEventClassrooms();
-
-    
-  };
+ 
   addCourseEvent = evt => {
+    evt.Event_teachers=this.state.selectedTeachers.map(teacher => {
+      return {
+        dapartmentTeacherId: teacher.Department_Teacher.id
+      }
+      
+     
+    })
+    evt.Event_classrooms= this.state.selectedClassrooms.map(classroom => {
+      return {  classroomId: classroom.id };
+     
+    })
     console.log("event to add", evt);
     return fetch("/addEvent", {
       method: "post",
@@ -129,94 +118,20 @@ class AddCourseEvent extends Component {
     })
       .then(response => {
         if (response.ok) {
-          //deparmentId is not recognized
-          response.json().then(json => {
-            console.log("-----------------------data came from database courseEvent  -----", json);
-            this.CourseEventId = json.id;
-            console.log(" this.CourseEventId", this.CourseEventId)
-             /*this.addEventTeachers();
-             this.addEventClassrooms();*/
-             Promise.all([
-             this.secondFunction(),
-             this.secondFunction2()
-             ]).then(()=>{
-              //this.props.fetchData({deparmentId:this.props.departmentId , arrayName:"courses"})
-             
-             
-
-
-              this.props.filteredFetch({deparmentId:this.props.departmentId ,selectedSemester:this.props.selectedSemester,  arrayName:"openedCoursesEvents",selectedTimetable:this.props.selectedTimetable})
-           //  this.props. filteredFetch({deparmentId:this.props.departmentId ,semesterNo:this.props.semesterId ,  arrayName:"ChangedOpenedCoursesEvents" ,url:"openedCoursesEvents",timetableId:this.props.selectedTimetable.id})
-           
-             })
-             console.log("  fetch ekleme bitti            this.props.selectedCourse            ",this.props.selectedCourse);
-             // !! must be controled
-             setTimeout(() => {
-              console.log("kapandı ...............................")
-              this.props.close_details()
-             }, 130);
-          
-            });
+          this.props.filteredFetch({deparmentId:this.props.departmentId ,selectedSemester:this.props.selectedSemester,  arrayName:"openedCoursesEvents",selectedTimetable:this.props.selectedTimetable})
+          .then(res=>{
+            this.clearState()
+            this.props.close_details()
+          })
+         
          
         }
       
       })
-     .then(()=>{
-       //must be controled
      
-      
-    })
   };
-  addEventTeachers=()=>{
-    console.log("addEventTeachers  this.CourseEventId", this.CourseEventId)
-    console.log("addEventTeachers  this.state.selectedTeachers", this.state.selectedTeachers)
-    this.state.selectedTeachers.map(teacher => {
-        let eventTeacher = {
-      
-          eventId:  this.CourseEventId,
-          dapartmentTeacherId: teacher.Department_Teacher.id
-        };
-        console.log("eventTeacher",eventTeacher)
-        fetch("/addEventTeacher", {
-          method: "post",
-          body: JSON.stringify({
-              evtTeacher: eventTeacher
-          })
-        }).then(response => {
-          if (response.ok) {
-            //deparmentId is not recognized
-            response.json().then(json => {
-              console.log("--------------------data came from database  eventTeacher-----", json);
-             
-            });
-          }
-        });
-      });
-  }
-  addEventClassrooms=()=>{
-     console.log("addEventClassrooms  this.CourseEventId", this.CourseEventId)
-    console.log("addEventClassrooms  this.state.selectedClassrooms", this.state.selectedClassrooms)
-    this.state.selectedClassrooms.map(classroom => {
-        let eventClassroom = { eventId: this.CourseEventId, classroomId: classroom.id };
-       
-        console.log("eventTeacher",eventClassroom)
-        fetch("/addEventClassroom", {
-          method: "post",
-          body: JSON.stringify({
-            evtClassroom: eventClassroom
-          })
-        }).then(response => {
-          if (response.ok) {
-            //deparmentId is not recognized
-            response.json().then(json => {
-              console.log("---------------data came from database  eventClassroom------", json);
-            
-            });
-          }
-        });
-      });
-  }
-  
+
+
   handleSubmit = () => {
     let opendCourseId1 = this.getOpenCourseId();
     if (opendCourseId1 === -1) {
@@ -254,8 +169,14 @@ class AddCourseEvent extends Component {
         {this.state.didMount ? (
         
           <Modal isOpen={this.props.addCourseEventIsOpen}>
-            <ModalHeader> Grup Ekle </ModalHeader>
+            <ModalHeader> 
+            {this.props.selectedTimetable.timetableType == "Ders"?
+          "Grup Ekle ":"Sınav Ekle"  
+          }
+              
+              </ModalHeader>
             <ModalBody>
+            {this.props.selectedTimetable.timetableType == "Ders"?
               <Form.Group controlId="exampleForm.ControlInput1">
                 <Form.Label> Ders Türü</Form.Label>
                 <div style={{ width: "100%" }}>
@@ -267,9 +188,12 @@ class AddCourseEvent extends Component {
                     }}
                   />
                 </div>
-              </Form.Group>
+              </Form.Group>:""}
               <Form.Group controlId="exampleForm.ControlInput1">
-                <Form.Label> Araştırma Görevlisi</Form.Label>
+                <Form.Label> 
+                {this.props.selectedTimetable.timetableType == "Ders"?
+                  "Öğretim Üyesi/Araştırma görevlisi":
+                  "Gözetmen"}</Form.Label>
                 <div>
                   <MultiSelect
                     style={{ width: "100%" }}

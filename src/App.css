@@ -27,6 +27,17 @@
   background-color:#ff8080
   ;
 }
+.darkred{
+
+  background-color: #f80808 !important ;
+  border-color: #f80808 !important ;
+  width: 18%;
+}
+.darkred:hover{
+  background-color:#aa0808 !important ;
+  border-color :#aa0808 !important ;
+  ;
+}
 .headercell , .switch{
   background-color: rgb(2, 107, 110);
   color: aliceblue;
@@ -110,6 +121,22 @@ margin-bottom: 1%;
   margin-left: 2%;
 
 }
+.selectionbtn .p-button.p-highlight {
+  background-color: #393a39 !important;
+   border: 0px !important ;
+   transition: #626364 0.2s, box-shadow 0.2s !important;
+  color: #ffffff!important;
+}
+.selectionbtn {
+  margin: 0;
+  color: #ffffff !important;
+  background-color: #626364 !important;
+  border: 0px solid #7e8081 !important;
+  font-size: 14px !important;
+
+  border-radius: 3px !important;
+}
+
 .kontrol{
  
   margin-block-end: 20% !important;
@@ -117,13 +144,13 @@ margin-bottom: 1%;
 
 }
 .save {
-  background-color: 	rgb(34,139,34)  !important;
+ background-color: 	#007ad9  !important;
  width: 80%;
  margin-left: 0%
 }
 
 .save:hover  {
-  background-color: 	rgb(13, 88, 13)  !important;
+  background-color: 	#016cbd  !important;
 
 }
 .alert{
@@ -236,6 +263,11 @@ body .p-component {
   border: solid rgb(1, 73, 1);
   border-width: 0 3px 3px 0;
   display: inline-block;
+}
+.gri:hover{
+  background-color:#f1eaea  ;
+ 
+  ;
 }
 /**/
 

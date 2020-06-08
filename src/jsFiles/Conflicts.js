@@ -5,7 +5,7 @@ export const printTeachers = function () {
 
   return store.getState().data.teachers
 }
-export const isTimeConflicted = function (course1, course2) {
+export const isTimeConflicted = function (course1, course2,type) {
 
 if (course1.startingHour== null || course2.startingHour==null ) return false
     if (course1.startingHour.getHours()> 
@@ -23,13 +23,18 @@ if (course1.startingHour== null || course2.startingHour==null ) return false
       course2startingHour >= course1startingHour &&
       course2startingHour <= course1endingHour &&
       course1.eventDate!= null&&
-      course2.eventDate!= null&&
-      //course1.eventDate===course2.eventDate
-      // by comparing only week day we can get true result for week and exam timetables
-      new Date(course1.eventDate).getDay() == new Date(course2.eventDate).getDay()
-      
+      course2.eventDate!= null
+ 
     ) {
-      return true;
+      // compare according to date
+      if(type=="weekday" && 
+      new Date(course1.eventDate).getDay() == new Date(course2.eventDate).getDay()
+       )return true;
+      else if(course1.eventDate==course2.eventDate){
+        // by comparing only week day we can get true result for course timetables
+        return true;
+      }
+      
     }
     return false;
   }
@@ -111,13 +116,14 @@ if (course1.startingHour== null || course2.startingHour==null ) return false
       courses2.map(course2 => {
         if (
           course1.id !== course2.id &&  // dont compare course with itself
-          isTimeConflicted(course1, course2) 
+          isTimeConflicted(course1, course2 ) 
         ) {
           if (isClassroomConflicted(course1, course2)) {
             numberOfConflicts++
             course1[arrayName].push({
               type: "classroom",
-              conflictedCourse: course2
+              conflictedCourse: course2,
+             
             });
             allConf.push(course1)
           }
@@ -158,8 +164,8 @@ if (course1.startingHour== null || course2.startingHour==null ) return false
           let Teacher_with_ristriction=store.getState().data.teachers.filter(teacher=> teacher.id==teacher1.id)[0]
           Teacher_with_ristriction.Teacher_restrictions.map(restriction=>{
             restriction.startingHour= new Date(restriction.startingHour)
-            if(  isTimeConflicted(course1, restriction,true) ){
-              console.log("restriction conflicted ",course1,restriction)
+            if(  isTimeConflicted(course1, restriction,"weekday") ){
+             
           
   
               //
