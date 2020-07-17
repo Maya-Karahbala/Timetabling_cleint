@@ -242,7 +242,7 @@ class SemestersPage extends Component {
                       options={this.state.selectedSemester.Timetables.map(
                         timetable => {
                           return {
-                            label: timetable.timetableType + " Programı"+ timetable.id,
+                            label: timetable.timetableType + " Programı",
                             value: timetable.id
                           };
                         }

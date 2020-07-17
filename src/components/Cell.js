@@ -25,8 +25,7 @@ export default class Cell extends Component {
         onDoubleClick={this.toggle_details}
       >
         <div>
-          {this.props.course.id +
-            " " +
+          {
             this.props.course.Opened_course.Department_course.Course.code}
         </div>
         <div>
@@ -45,6 +44,8 @@ export default class Cell extends Component {
         ) : (
           <div>{this.props.course.classrooms[0].code}</div>
         )}
+       {//" "+ this.props.course.id 
+             }
       </div>
     );
   }

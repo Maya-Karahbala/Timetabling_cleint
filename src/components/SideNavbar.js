@@ -115,8 +115,8 @@ class SideNavbar extends Component {
                         </NavIcon>
                         <NavText>
                           {this.props.selectedTimetable.timetableType == "Ders"
-                            ? "Ders ekle"
-                            : "Sınav ekle"}
+                            ? "Ders işlemleri"
+                            : "Sınav işlemleri"}
                         </NavText>
                       </NavItem>
 
@@ -142,7 +142,7 @@ class SideNavbar extends Component {
                             style={{ fontSize: "1.75em" }}
                           />
                         </NavIcon>
-                        <NavText>Öğretim üyeleri</NavText>
+                        <NavText>Öğretim üyesi işlemleri</NavText>
                       </NavItem>
 
                       <NavItem eventKey="SemestersPage">
@@ -152,7 +152,7 @@ class SideNavbar extends Component {
                             style={{ fontSize: "1.75em" }}
                           />
                         </NavIcon>
-                        <NavText>Dönemler</NavText>
+                        <NavText>Dönem işlemleri</NavText>
                       </NavItem>
 
                       <NavItem eventKey="ConflictsPage">
@@ -162,7 +162,7 @@ class SideNavbar extends Component {
                             style={{ fontSize: "1.75em" }}
                           />
                         </NavIcon>
-                        <NavText>Çakışmalar</NavText>
+                        <NavText>Çakışma işlemleri</NavText>
                       </NavItem>
                       <NavItem eventKey=""
                       onClick={() => {
