@@ -733,7 +733,7 @@ updateReduxOpenedCourses=()=>{
 
             <Col lg={9} style={{ marginTop: "2%" }}>
              
-              <Growl ref={(el) => this.growl = el} />
+              
              
             </Col>
            
